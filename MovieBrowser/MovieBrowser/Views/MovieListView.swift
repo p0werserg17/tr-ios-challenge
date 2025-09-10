@@ -16,6 +16,8 @@ struct MovieListView: View {
     @StateObject private var viewModel = MovieListViewModel()
     @State private var selectedMovie: Movie?
     @State private var showingMovieDetail = false
+    @State private var showingFilterView = false
+    @State private var isFavoritesSectionCollapsed = false
 
     // MARK: - Body
     var body: some View {
@@ -28,44 +30,50 @@ struct MovieListView: View {
             }
             .navigationTitle("Movies")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    // Invisible button to catch taps on title area
-                    Button(action: {
-                        hideKeyboard()
-                    }) {
-                        Color.clear
-                            .frame(width: 100, height: 44)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-
-                ToolbarItem(placement: .principal) {
-                    // Tappable title that dismisses keyboard
-                    Button(action: {
-                        hideKeyboard()
-                    }) {
-                        Text("Movies")
-                            .font(.headline)
-                            .foregroundColor(DesignSystem.Colors.label)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    toolbarButton
-                }
-            }
+            .toolbar(content: toolbarContent)
             .contentShape(Rectangle())
             .onTapGesture {
                 // Dismiss keyboard when tapping anywhere
                 hideKeyboard()
             }
-            .refreshable {
-                await viewModel.refreshMovies()
-            }
             .sheet(item: $selectedMovie) { movie in
                 MovieDetailView(movie: movie)
+            }
+            .sheet(isPresented: $showingFilterView) {
+                FilterView(
+                    filterOptions: $viewModel.filterOptions,
+                    sortOption: $viewModel.sortOption,
+                    movies: viewModel.movies,
+                    onApply: {
+                        // Auto-collapse favorites when filters/sorting are applied
+                        DispatchQueue.main.async {
+                            if viewModel.filterOptions.isActive || viewModel.sortOption != .yearNewest {
+                                isFavoritesSectionCollapsed = true
+                            }
+                        }
+                    },
+                    onReset: {
+                        DispatchQueue.main.async {
+                            viewModel.resetFilters()
+                        }
+                    }
+                )
+            }
+            .onChange(of: viewModel.filterOptions) { newFilterOptions in
+                // Auto-collapse favorites when filters are applied
+                if newFilterOptions.isActive {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        isFavoritesSectionCollapsed = true
+                    }
+                }
+            }
+            .onChange(of: viewModel.sortOption) { newSortOption in
+                // Auto-collapse favorites when custom sorting is applied
+                if newSortOption != .yearNewest {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        isFavoritesSectionCollapsed = true
+                    }
+                }
             }
         }
         .preferredColorScheme(nil) // Support both light and dark mode
@@ -104,11 +112,23 @@ struct MovieListView: View {
     // MARK: - Movie List Content
     private var movieListContent: some View {
         VStack(spacing: 0) {
+            // Non-refreshable top section
+            topSection
+
+            // Refreshable movie content
+            refreshableMovieContent
+        }
+    }
+
+    // MARK: - Top Section (Non-refreshable)
+    private var topSection: some View {
+        VStack(spacing: 0) {
             // Sticky search bar
             SearchBarView(
                 text: $viewModel.searchText,
                 onSearchButtonClicked: {
-                    viewModel.trackSearchPerformed(viewModel.searchText)
+                    let searchText = viewModel.searchText
+                    viewModel.trackSearchPerformed(searchText)
                 },
                 onCancelButtonClicked: {
                     viewModel.clearSearch()
@@ -121,8 +141,43 @@ struct MovieListView: View {
                     .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
             )
 
-            // Search results header removed - count now shown in section
+            // Professional Toolbar
+            MovieToolbarView(
+                filterOptions: viewModel.filterOptions,
+                sortOption: viewModel.sortOption,
+                filteredCount: viewModel.filteredMovies.count,
+                totalCount: viewModel.movies.count,
+                onFilterTap: {
+                    hideKeyboard()
+                    showingFilterView = true
+                },
+                onSortTap: {
+                    hideKeyboard()
+                    showingFilterView = true
+                }
+            )
+            .padding(.top, 2)
+            .padding(.bottom, 4)
 
+            // Filter Status (when active) - NON-REFRESHABLE
+            FilterStatusView(
+                filterOptions: viewModel.filterOptions,
+                sortOption: viewModel.sortOption,
+                onClearFilters: {
+                    DispatchQueue.main.async {
+                        viewModel.resetFilters()
+                    }
+                },
+                onRemoveFilter: { chipType in
+                    removeSpecificFilter(chipType)
+                }
+            )
+        }
+    }
+
+    // MARK: - Refreshable Movie Content
+    private var refreshableMovieContent: some View {
+        Group {
             // Movie grid or empty state
             if viewModel.filteredMovies.isEmpty && !viewModel.searchText.isEmpty {
                 // Show no search results but keep search bar at top
@@ -133,7 +188,9 @@ struct MovieListView: View {
                         NoSearchResultsView(
                             searchTerm: viewModel.searchText,
                             onClearSearch: {
-                                viewModel.clearSearch()
+                                DispatchQueue.main.async {
+                                    viewModel.clearSearch()
+                                }
                             }
                         )
 
@@ -173,6 +230,9 @@ struct MovieListView: View {
                 movieGrid
             }
         }
+        .refreshable {
+            await viewModel.refreshMovies()
+        }
     }
 
     // MARK: - Movie Grid
@@ -200,39 +260,65 @@ struct MovieListView: View {
     // MARK: - Featured Section
     private var featuredSection: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            HStack(alignment: .center, spacing: DesignSystem.Spacing.sm) {
-                Label("Your Favorites", systemImage: "heart.fill")
-                    .font(DesignSystem.Typography.sectionTitle)
-                    .foregroundColor(DesignSystem.Colors.label)
+            // Collapsible header
+            Button(action: {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    isFavoritesSectionCollapsed.toggle()
+                }
+            }) {
+                HStack(alignment: .center, spacing: DesignSystem.Spacing.sm) {
+                    Label("Your Favorites", systemImage: "heart.fill")
+                        .font(DesignSystem.Typography.sectionTitle)
+                        .foregroundColor(DesignSystem.Colors.label)
 
-                // Improved count badge
-                Text("\(viewModel.likedMoviesCount)")
-                    .font(DesignSystem.Typography.callout.weight(.semibold))
-                    .foregroundColor(.white)
-                    .frame(minWidth: 24, minHeight: 24)
-                    .padding(.horizontal, DesignSystem.Spacing.xs)
-                    .background(
-                        Capsule()
-                            .fill(DesignSystem.Colors.primary)
-                    )
-                    .scaleEffect(0.9) // Slightly smaller for better proportions
+                    // Improved count badge
+                    Text("\(viewModel.likedMoviesCount)")
+                        .font(DesignSystem.Typography.callout.weight(.semibold))
+                        .foregroundColor(.white)
+                        .frame(minWidth: 24, minHeight: 24)
+                        .padding(.horizontal, DesignSystem.Spacing.xs)
+                        .background(
+                            Capsule()
+                                .fill(DesignSystem.Colors.primary)
+                        )
+                        .scaleEffect(0.9) // Slightly smaller for better proportions
 
-                Spacer()
+                    Spacer()
+
+                    // Collapsible chevron arrow
+                    Image(systemName: isFavoritesSectionCollapsed ? "chevron.down" : "chevron.up")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(DesignSystem.Colors.secondaryLabel)
+                        .animation(.easeInOut(duration: 0.2), value: isFavoritesSectionCollapsed)
+                }
+                .contentShape(Rectangle()) // Make entire header tappable
             }
+            .buttonStyle(PlainButtonStyle())
             .padding(.horizontal, DesignSystem.Spacing.screenPadding)
 
-            MovieCardGridView(
-                movies: viewModel.likedMovies,
-                likedMovieIds: viewModel.likedMovieIds,
-                onMovieTap: { movie in
-                    hideKeyboard()
-                    selectedMovie = movie
-                    viewModel.trackMovieViewed(movie)
-                },
-                onLikeToggle: { movie in
-                    viewModel.toggleLike(for: movie)
-                }
-            )
+            // Collapsible content
+            if !isFavoritesSectionCollapsed {
+                MovieCardGridView(
+                    movies: viewModel.likedMovies,
+                    likedMovieIds: viewModel.likedMovieIds,
+                    onMovieTap: { movie in
+                        hideKeyboard()
+                        selectedMovie = movie
+                        DispatchQueue.main.async {
+                            viewModel.trackMovieViewed(movie)
+                        }
+                    },
+                    onLikeToggle: { movie in
+                        DispatchQueue.main.async {
+                            viewModel.toggleLike(for: movie)
+                        }
+                    }
+                )
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.95).combined(with: .opacity),
+                    removal: .scale(scale: 0.95).combined(with: .opacity)
+                ))
+            }
         }
     }
 
@@ -259,53 +345,56 @@ struct MovieListView: View {
                 onMovieTap: { movie in
                     hideKeyboard()
                     selectedMovie = movie
-                    viewModel.trackMovieViewed(movie)
+                    DispatchQueue.main.async {
+                        viewModel.trackMovieViewed(movie)
+                    }
                 },
                 onLikeToggle: { movie in
-                    viewModel.toggleLike(for: movie)
+                    DispatchQueue.main.async {
+                        viewModel.toggleLike(for: movie)
+                    }
                 }
             )
         }
     }
 
-    // MARK: - Toolbar Button
-    private var toolbarButton: some View {
-        Menu {
+
+    // MARK: - Toolbar Content
+    @ToolbarContentBuilder
+    private func toolbarContent() -> some ToolbarContent {
+        ToolbarItemGroup(placement: .navigationBarLeading) {
+            // Invisible button to catch taps on title area
             Button(action: {
                 hideKeyboard()
-                Task {
-                    await viewModel.refreshMovies()
-                }
             }) {
-                Label("Refresh", systemImage: "arrow.clockwise")
+                Color.clear
+                    .frame(width: 100, height: 44)
             }
-
-            Divider()
-
-            Button(action: {
-                hideKeyboard()
-                // Future: Sort options
-            }) {
-                Label("Sort by Year", systemImage: "calendar")
-            }
-
-            Button(action: {
-                hideKeyboard()
-                // Future: Filter options
-            }) {
-                Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
-            }
-
-        } label: {
-            Image(systemName: "ellipsis.circle")
-                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(DesignSystem.Colors.primary)
+            .buttonStyle(PlainButtonStyle())
         }
-        .onTapGesture {
-            // Dismiss keyboard when toolbar button is tapped
-            hideKeyboard()
+
+        ToolbarItemGroup(placement: .principal) {
+            // Tappable title that dismisses keyboard
+            Button(action: {
+                hideKeyboard()
+            }) {
+                Text("Movies")
+                    .font(.headline)
+                    .foregroundColor(DesignSystem.Colors.label)
+            }
+            .buttonStyle(PlainButtonStyle())
         }
-        .accessibilityLabel("More options")
+
+        ToolbarItemGroup(placement: .navigationBarTrailing) {
+            Button(action: {
+                hideKeyboard()
+            }) {
+                Image(systemName: "ellipsis.circle")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(DesignSystem.Colors.primary)
+            }
+            .opacity(0) // Hidden but keeps layout
+        }
     }
 
     // MARK: - Helper Methods
@@ -313,6 +402,32 @@ struct MovieListView: View {
     /// Dismisses the keyboard by ending editing
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+
+    /// Removes a specific filter based on chip type
+    private func removeSpecificFilter(_ chipType: FilterChipType) {
+        var updatedFilterOptions = viewModel.filterOptions
+        var updatedSortOption = viewModel.sortOption
+
+        switch chipType {
+        case .decade(let decade):
+            updatedFilterOptions.selectedDecades.remove(decade)
+        case .genre(let genre):
+            updatedFilterOptions.selectedGenres.remove(genre)
+        case .rating:
+            updatedFilterOptions.minRating = 0.0
+            updatedFilterOptions.maxRating = 10.0
+        case .likedOnly:
+            updatedFilterOptions.showLikedOnly = false
+        case .unlikedOnly:
+            updatedFilterOptions.showUnlikedOnly = false
+        case .sort:
+            updatedSortOption = .yearNewest
+        }
+
+        // Update the view model
+        viewModel.updateFilterOptions(updatedFilterOptions)
+        viewModel.updateSortOption(updatedSortOption)
     }
 }
 

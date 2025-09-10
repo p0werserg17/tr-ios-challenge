@@ -43,22 +43,32 @@ class MovieListViewModel: ObservableObject {
         }
     }
     @Published var likedMovieIds: Set<Int> = []
+    @Published var filterOptions: FilterOptions = FilterOptions()
+    @Published var sortOption: SortOption = .yearNewest
 
     // MARK: - Internal Search State
     @Published private var debouncedSearchText: String = ""
 
     // MARK: - Computed Properties
-    /// Filtered movies based on debounced search text with fuzzy matching
+    /// Filtered and sorted movies based on search, filters, and sort options
     var filteredMovies: [Movie] {
-        guard !debouncedSearchText.isEmpty else {
-            return movies.sorted { $0.year > $1.year }
+        var result = movies
+
+        // Apply search filter first
+        if !debouncedSearchText.isEmpty {
+            let searchResults = searchService.search(movies, query: debouncedSearchText)
+            result = searchResults.map { $0.item }
         }
 
-        // Use search service for professional search experience with fuzzy matching
-        let searchResults = searchService.search(movies, query: debouncedSearchText)
+        // Apply advanced filters
+        result = applyFilters(to: result)
 
-        // Extract movies from search results (already sorted by relevance)
-        return searchResults.map { $0.item }
+        // Apply sorting (only if not searching, as search results are sorted by relevance)
+        if debouncedSearchText.isEmpty {
+            result = applySorting(to: result)
+        }
+
+        return result
     }
 
     /// Movies that are currently liked
@@ -155,6 +165,22 @@ class MovieListViewModel: ObservableObject {
         await loadMovies()
     }
 
+    /// Updates filter options and triggers UI refresh
+    func updateFilterOptions(_ options: FilterOptions) {
+        filterOptions = options
+    }
+
+    /// Updates sort option and triggers UI refresh
+    func updateSortOption(_ option: SortOption) {
+        sortOption = option
+    }
+
+    /// Resets all filters and sorting to default
+    func resetFilters() {
+        filterOptions.reset()
+        sortOption = .yearNewest
+    }
+
     // MARK: - Private Methods
 
     /// Sets up observer for likes changes
@@ -194,6 +220,74 @@ class MovieListViewModel: ObservableObject {
         // Disabled for now - using SwiftUI's built-in AsyncImage
         // let thumbnailURLs = movies.compactMap { $0.thumbnailURL }
         // ImageCacheService.shared.preloadImages(from: thumbnailURLs)
+    }
+
+    /// Applies advanced filters to the movie list
+    private func applyFilters(to movies: [Movie]) -> [Movie] {
+        var filtered = movies
+
+        // Apply decade filter
+        if !filterOptions.selectedDecades.isEmpty {
+            filtered = filtered.filter { movie in
+                filterOptions.selectedDecades.contains(movie.decade)
+            }
+        }
+
+        // Apply genre filter
+        if !filterOptions.selectedGenres.isEmpty {
+            filtered = filtered.filter { movie in
+                filterOptions.selectedGenres.contains(movie.estimatedGenre)
+            }
+        }
+
+        // Apply rating filter
+        if filterOptions.minRating > 0.0 || filterOptions.maxRating < 10.0 {
+            filtered = filtered.filter { movie in
+                let rating = movie.estimatedRating
+                return rating >= filterOptions.minRating && rating <= filterOptions.maxRating
+            }
+        }
+
+        // Apply liked/unliked filter
+        if filterOptions.showLikedOnly {
+            filtered = filtered.filter { movie in
+                likedMovieIds.contains(movie.id)
+            }
+        } else if filterOptions.showUnlikedOnly {
+            filtered = filtered.filter { movie in
+                !likedMovieIds.contains(movie.id)
+            }
+        }
+
+        return filtered
+    }
+
+    /// Applies sorting to the movie list
+    private func applySorting(to movies: [Movie]) -> [Movie] {
+        switch sortOption {
+        case .yearNewest:
+            return movies.sorted { $0.year > $1.year }
+        case .yearOldest:
+            return movies.sorted { $0.year < $1.year }
+        case .nameAZ:
+            return movies.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .nameZA:
+            return movies.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedDescending }
+        case .liked:
+            return movies.sorted { movie1, movie2 in
+                let movie1Liked = likedMovieIds.contains(movie1.id)
+                let movie2Liked = likedMovieIds.contains(movie2.id)
+
+                if movie1Liked && !movie2Liked {
+                    return true
+                } else if !movie1Liked && movie2Liked {
+                    return false
+                } else {
+                    // If both have same liked status, sort by year (newest first)
+                    return movie1.year > movie2.year
+                }
+            }
+        }
     }
 }
 
