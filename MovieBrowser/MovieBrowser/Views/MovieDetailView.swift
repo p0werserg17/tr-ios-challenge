@@ -78,10 +78,10 @@ struct MovieDetailView: View {
         }
     }
 
-    // MARK: - Movie Detail Content
+    // MARK: - Movie Detail Content (Redesigned)
     private var movieDetailContent: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+            LazyVStack(alignment: .leading, spacing: 24) {
                 // Hero section with poster and basic info
                 heroSection
 
@@ -100,8 +100,10 @@ struct MovieDetailView: View {
 
                 // Recommendations section
                 recommendationsSection
+
+                // Bottom safe area padding for full visibility
+                Color.clear.frame(height: 16)
             }
-            .padding(.bottom, DesignSystem.Spacing.xl)
         }
         .scrollIndicators(.hidden)
         .refreshable {
@@ -109,158 +111,317 @@ struct MovieDetailView: View {
         }
     }
 
-    // MARK: - Hero Section
+    // MARK: - Hero Section (Redesigned)
     private var heroSection: some View {
-        VStack(spacing: DesignSystem.Spacing.lg) {
-            // Large movie poster - Using Kingfisher for consistency
-            SimpleAsyncImageView(
-                url: viewModel.movieDetails?.pictureURL ?? movie.thumbnailURL,
-                height: 400
-            )
-            .shadow(
-                color: DesignSystem.Shadow.card.color,
-                radius: DesignSystem.Shadow.card.radius * 2,
-                x: 0,
-                y: DesignSystem.Shadow.card.y * 2
-            )
-            .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+        VStack(spacing: 0) {
+            // Premium poster with consistent background
+            VStack(spacing: 16) {
+                Spacer(minLength: 16)
 
-            // Title and basic info
-            VStack(spacing: DesignSystem.Spacing.sm) {
-                Text(movie.name)
-                    .font(DesignSystem.Typography.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(DesignSystem.Colors.label)
-                    .multilineTextAlignment(.center)
-                    .accessibilityAddTraits(.isHeader)
-
-                HStack(spacing: DesignSystem.Spacing.md) {
-                    Text(movie.yearString)
-                        .font(DesignSystem.Typography.title3)
-                        .foregroundColor(DesignSystem.Colors.secondaryLabel)
-
-                    if let details = viewModel.movieDetails {
-                        Text("•")
-                            .foregroundColor(DesignSystem.Colors.tertiaryLabel)
-
-                        Text(details.formattedReleaseDate)
-                            .font(DesignSystem.Typography.callout)
-                            .foregroundColor(DesignSystem.Colors.secondaryLabel)
-                    }
-                }
-            }
-            .padding(.horizontal, DesignSystem.Spacing.screenPadding)
-        }
-    }
-
-    // MARK: - Movie Info Section
-    private var movieInfoSection: some View {
-        VStack(spacing: DesignSystem.Spacing.md) {
-            if let details = viewModel.movieDetails {
-                // Rating
-                LargeStarRatingView(
-                    rating: details.starRating,
-                    originalRating: details.rating
+                // Enhanced poster with premium styling
+                SimpleAsyncImageView(
+                    url: viewModel.movieDetails?.pictureURL ?? movie.thumbnailURL,
+                    height: 320
+                )
+                .frame(width: 214) // Golden ratio: 320/214 ≈ 1.5 (poster ratio)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .shadow(color: .black.opacity(0.25), radius: 20, x: 0, y: 10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
                 )
 
-                // Quick stats
-                HStack(spacing: DesignSystem.Spacing.xl) {
-                    VStack(spacing: DesignSystem.Spacing.xs) {
-                        Text("RATING")
-                            .font(DesignSystem.Typography.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(DesignSystem.Colors.tertiaryLabel)
+                Spacer(minLength: 16)
+            }
+            .frame(maxWidth: .infinity, maxHeight: 400) // Center horizontally
+            .background(DesignSystem.Colors.background) // Consistent background
 
-                        Text(details.formattedRating)
-                            .font(DesignSystem.Typography.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(DesignSystem.Colors.label)
-                    }
+            // Title section with improved typography hierarchy
+            VStack(spacing: 12) {
+                VStack(spacing: 8) {
+                    Text(movie.name)
+                        .font(.system(size: 28, weight: .bold, design: .default))
+                        .foregroundColor(DesignSystem.Colors.label)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(3)
+                        .frame(minHeight: 60, alignment: .center) // Allocate space and center vertically
+                        .accessibilityAddTraits(.isHeader)
 
-                    VStack(spacing: DesignSystem.Spacing.xs) {
-                        Text("YEAR")
-                            .font(DesignSystem.Typography.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(DesignSystem.Colors.tertiaryLabel)
-
-                        Text(movie.yearString)
-                            .font(DesignSystem.Typography.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(DesignSystem.Colors.label)
-                    }
-
-                    VStack(spacing: DesignSystem.Spacing.xs) {
-                        Text("LIKED")
-                            .font(DesignSystem.Typography.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(DesignSystem.Colors.tertiaryLabel)
-
-                        Image(systemName: viewModel.isLiked ? "heart.fill" : "heart")
-                            .font(.system(size: 24, weight: .semibold))
-                            .foregroundColor(
-                                viewModel.isLiked ? DesignSystem.Colors.heartFilled : DesignSystem.Colors.heartEmpty
-                            )
+                    // Enhanced metadata with single date source
+                    HStack {
+                        Spacer()
+                        if let details = viewModel.movieDetails {
+                            // Use the more specific release date from details
+                            Text(details.formattedReleaseDate)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.secondaryLabel)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(DesignSystem.Colors.tertiaryBackground)
+                                .clipShape(Capsule())
+                        } else {
+                            // Fallback to year if details not loaded
+                            Text(movie.yearString)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.secondaryLabel)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(DesignSystem.Colors.tertiaryBackground)
+                                .clipShape(Capsule())
+                        }
+                        Spacer()
                     }
                 }
-                .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+
+                // Star rating - clean display without redundant text
+                if let details = viewModel.movieDetails {
+                    HStack {
+                        Spacer()
+                        StarRatingView(
+                            rating: details.starRating,
+                            starSize: 24,
+                            spacing: 6,
+                            showRatingText: false
+                        )
+                        .padding(.horizontal, 8) // Reasonable padding
+                        .padding(.vertical, 8)   // Reasonable padding
+                        Spacer()
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity) // Ensure full width for centering
+            .padding(.horizontal, 24)
+            .padding(.vertical, 20)
+        }
+    }
+
+    // MARK: - Movie Info Section (Redesigned)
+    @ViewBuilder
+    private var movieInfoSection: some View {
+        if let details = viewModel.movieDetails {
+            VStack(spacing: 16) {
+                // Premium stats cards with glassmorphism effect
+                HStack(spacing: 16) {
+                    // Rating card
+                    VStack(spacing: 8) {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(.yellow)
+
+                        Text(details.formattedRating)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(DesignSystem.Colors.label)
+
+                        Text("Rating")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(DesignSystem.Colors.secondaryLabel)
+                            .textCase(.uppercase)
+                            .tracking(0.5)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(DesignSystem.Colors.secondaryBackground)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
+                            )
+                    )
+
+                    // Year card
+                    VStack(spacing: 8) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(DesignSystem.Colors.primary)
+
+                        Text(movie.yearString)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(DesignSystem.Colors.label)
+
+                        Text("Year")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(DesignSystem.Colors.secondaryLabel)
+                            .textCase(.uppercase)
+                            .tracking(0.5)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(DesignSystem.Colors.secondaryBackground)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
+                            )
+                    )
+
+                    // Interactive Like status card
+                    Button(action: {
+                        viewModel.toggleLike()
+                    }) {
+                        VStack(spacing: 8) {
+                            Image(systemName: viewModel.isLiked ? "heart.fill" : "heart")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(viewModel.isLiked ? DesignSystem.Colors.heartFilled : DesignSystem.Colors.heartEmpty)
+                                .scaleEffect(viewModel.isLiked ? 1.1 : 1.0)
+                                .animation(DesignSystem.Animation.likeButton, value: viewModel.isLiked)
+
+                            Text(viewModel.isLiked ? "Liked" : "Like")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(DesignSystem.Colors.label)
+
+                            Text("Status")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(DesignSystem.Colors.secondaryLabel)
+                                .textCase(.uppercase)
+                                .tracking(0.5)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(DesignSystem.Colors.secondaryBackground)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
+                                )
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .scaleEffect(1.0)
+                    .animation(.easeInOut(duration: 0.1), value: viewModel.isLiked)
+                    .accessibilityLabel(viewModel.isLiked ? "Unlike movie" : "Like movie")
+                    .accessibilityHint("Double tap to toggle like status")
+                }
+                .padding(.horizontal, 24)
             }
         }
     }
 
-    // MARK: - Description Section
+    // MARK: - Description Section (Redesigned)
     private func descriptionSection(_ details: MovieDetails) -> some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            Text("Synopsis")
-                .font(DesignSystem.Typography.sectionTitle)
-                .foregroundColor(DesignSystem.Colors.label)
-                .accessibilityAddTraits(.isHeader)
-
-            Text(details.description)
-                .font(DesignSystem.Typography.body)
-                .foregroundColor(DesignSystem.Colors.label)
-                .lineSpacing(4)
-        }
-        .cardPadding()
-        .cardStyle()
-        .padding(.horizontal, DesignSystem.Spacing.screenPadding)
-    }
-
-    // MARK: - Notes Section
-    private var notesSection: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
-            Text("Additional Information")
-                .font(DesignSystem.Typography.sectionTitle)
-                .foregroundColor(DesignSystem.Colors.label)
-                .accessibilityAddTraits(.isHeader)
-
-            Text(viewModel.movieNotes)
-                .font(DesignSystem.Typography.callout)
-                .foregroundColor(DesignSystem.Colors.secondaryLabel)
-                .lineSpacing(3)
-        }
-        .cardPadding()
-        .cardStyle()
-        .padding(.horizontal, DesignSystem.Spacing.screenPadding)
-    }
-
-    // MARK: - Recommendations Section
-    private var recommendationsSection: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+        VStack(alignment: .leading, spacing: 0) {
+            // Section header with refined styling
             HStack {
-                Text("You Might Also Like")
-                    .font(DesignSystem.Typography.sectionTitle)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Synopsis")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(DesignSystem.Colors.label)
+
+                    Rectangle()
+                        .fill(LinearGradient(
+                            colors: [DesignSystem.Colors.primary, DesignSystem.Colors.primary.opacity(0.6)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ))
+                        .frame(width: 30, height: 4)
+                        .clipShape(RoundedRectangle(cornerRadius: 2))
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 12)
+
+            // Enhanced description with better readability
+            VStack(alignment: .leading, spacing: 16) {
+                Text(details.description)
+                    .font(.system(size: 16, weight: .regular))
                     .foregroundColor(DesignSystem.Colors.label)
-                    .accessibilityAddTraits(.isHeader)
+                    .lineSpacing(6)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(24)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(DesignSystem.Colors.secondaryBackground)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                    )
+            )
+            .padding(.horizontal, 24)
+        }
+    }
+
+    // MARK: - Notes Section (Redesigned with Expandable Text)
+    private var notesSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Section header matching other sections
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Additional Information")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(DesignSystem.Colors.label)
+
+                    Rectangle()
+                        .fill(LinearGradient(
+                            colors: [DesignSystem.Colors.primary, DesignSystem.Colors.primary.opacity(0.6)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ))
+                        .frame(width: 40, height: 4)
+                        .clipShape(RoundedRectangle(cornerRadius: 2))
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 12)
+
+            // Expandable text content
+            ExpandableTextView(text: viewModel.movieNotes)
+                .padding(24)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(DesignSystem.Colors.secondaryBackground)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                        )
+                )
+                .padding(.horizontal, 24)
+        }
+    }
+
+    // MARK: - Recommendations Section (Redesigned)
+    private var recommendationsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Enhanced section header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("You Might Also Like")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(DesignSystem.Colors.label)
+                        .accessibilityAddTraits(.isHeader)
+
+                    Rectangle()
+                        .fill(LinearGradient(
+                            colors: [DesignSystem.Colors.primary, DesignSystem.Colors.primary.opacity(0.6)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ))
+                        .frame(width: 50, height: 4)
+                        .clipShape(RoundedRectangle(cornerRadius: 2))
+                }
 
                 Spacer()
 
                 if viewModel.recommendationsLoadingState == .loading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: DesignSystem.Colors.primary))
-                        .scaleEffect(0.8)
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: DesignSystem.Colors.primary))
+                            .scaleEffect(0.8)
+
+                        Text("Loading...")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(DesignSystem.Colors.secondaryLabel)
+                    }
                 }
             }
-            .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+            .padding(.horizontal, 24)
 
             recommendationsContent
         }
@@ -289,10 +450,13 @@ struct MovieDetailView: View {
         }
     }
 
-    // MARK: - Recommendations Scroll View
+    // MARK: - Recommendations Scroll View (Enhanced)
     private var recommendationsScrollView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: DesignSystem.Spacing.md) {
+            LazyHStack(spacing: 16) {
+                // Leading spacer for proper edge padding
+                Color.clear.frame(width: 8)
+
                 ForEach(viewModel.recommendedMovies) { recommendation in
                     CompactMovieCardView(
                         movie: recommendation,
@@ -304,10 +468,17 @@ struct MovieDetailView: View {
                             selectedRecommendation = recommendation
                         }
                     )
+                    .scaleEffect(0.95) // Slightly smaller for better visual hierarchy
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
                 }
+
+                // Trailing spacer for proper edge padding
+                Color.clear.frame(width: 8)
             }
-            .padding(.horizontal, DesignSystem.Spacing.screenPadding)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8) // Add vertical padding to prevent clipping
         }
+        .frame(height: 230) // Ensure sufficient height for cards
     }
 
     // MARK: - Recommendations Placeholder
@@ -432,6 +603,74 @@ struct ShareSheet: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+// MARK: - Expandable Text View
+struct ExpandableTextView: View {
+    let text: String
+    @State private var isExpanded = false
+    @State private var isTruncated = false
+
+    private let lineLimit = 3
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(text)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(DesignSystem.Colors.label)
+                .lineSpacing(6)
+                .lineLimit(isExpanded ? nil : lineLimit)
+                .background(
+                    // Hidden text to measure if truncation is needed
+                    Text(text)
+                        .font(.system(size: 16, weight: .regular))
+                        .lineSpacing(6)
+                        .lineLimit(lineLimit)
+                        .background(GeometryReader { geometry in
+                            Color.clear.onAppear {
+                                let font = UIFont.systemFont(ofSize: 16)
+                                let attributes = [NSAttributedString.Key.font: font]
+                                let attributedText = NSAttributedString(string: text, attributes: attributes)
+                                let textRect = attributedText.boundingRect(
+                                    with: CGSize(width: geometry.size.width, height: .greatestFiniteMagnitude),
+                                    options: .usesLineFragmentOrigin,
+                                    context: nil
+                                )
+                                let lineHeight = font.lineHeight + 6 // lineSpacing
+                                isTruncated = textRect.height > lineHeight * Double(lineLimit)
+                            }
+                        })
+                        .hidden()
+                )
+
+            if isTruncated {
+                HStack {
+                    Spacer()
+
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isExpanded.toggle()
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Text(isExpanded ? "Show Less" : "Show More")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(DesignSystem.Colors.primary)
+
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(DesignSystem.Colors.primary)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(DesignSystem.Colors.primary.opacity(0.1))
+                        .clipShape(Capsule())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Preview

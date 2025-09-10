@@ -80,25 +80,26 @@ struct MovieCardView: View {
 
     // MARK: - Movie Info View
     private var movieInfoView: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-            // Title area with exact 2-line height
+        VStack(alignment: .leading, spacing: 0) {
+            // Title area - centered vertically for better balance
             Text(movie.name)
                 .font(DesignSystem.Typography.movieTitle)
                 .foregroundColor(DesignSystem.Colors.label)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
                 .truncationMode(.tail)
-                .frame(maxWidth: .infinity, minHeight: 34, maxHeight: 34, alignment: .topLeading)
+                .frame(maxWidth: .infinity, minHeight: 34, maxHeight: 34, alignment: .center) // Centered alignment
                 .fixedSize(horizontal: false, vertical: true)
 
-            Spacer(minLength: 4) // Small gap
+            Spacer(minLength: 6) // Consistent spacing
 
-            // Year at bottom
+            // Year at bottom with centered alignment for consistency
             Text(movie.yearString)
                 .font(DesignSystem.Typography.movieYear)
                 .foregroundColor(DesignSystem.Colors.secondaryLabel)
+                .frame(maxWidth: .infinity, alignment: .center) // Centered like the title
         }
-        .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50, alignment: .topLeading) // Reduced height
+        .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50, alignment: .top) // Top alignment for container
     }
 }
 
@@ -168,24 +169,25 @@ struct CompactMovieCardView: View {
                 SimpleAsyncImageView(url: movie.thumbnailURL, height: 160)
                     .frame(width: 120)
 
-                // Compact info
-                VStack(alignment: .leading, spacing: 2) {
+                // Compact info with better spacing
+                VStack(alignment: .center, spacing: 0) {
                     Text(movie.name)
                         .font(DesignSystem.Typography.caption)
                         .fontWeight(.medium)
                         .foregroundColor(DesignSystem.Colors.label)
                         .lineLimit(2)
-                        .multilineTextAlignment(.leading)
+                        .multilineTextAlignment(.center) // Center the text
                         .truncationMode(.tail)
-                        .frame(height: 28, alignment: .topLeading) // Defined height for 2 lines
+                        .frame(height: 28, alignment: .center) // Centered for balance
 
-                    Spacer(minLength: 0)
+                    Spacer(minLength: 4) // Consistent spacing
 
                     Text(movie.yearString)
                         .font(DesignSystem.Typography.caption2)
                         .foregroundColor(DesignSystem.Colors.secondaryLabel)
+                        .frame(maxWidth: .infinity, alignment: .center) // Centered for consistency
                 }
-                .frame(width: 120, height: 40, alignment: .topLeading)
+                .frame(width: 120, height: 40, alignment: .top)
             }
             .frame(width: 120, height: 210) // Fixed total dimensions
         }

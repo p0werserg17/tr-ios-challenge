@@ -53,29 +53,31 @@ struct StarRatingView: View {
         .accessibilityLabel("Rating: \(String(format: "%.1f", rating)) out of 5 stars")
     }
 
-    // MARK: - Star View
+    // MARK: - Star View (Frame-Constrained with Precise Masking)
     private func starView(for index: Int) -> some View {
         let fillAmount = calculateFillAmount(for: index)
 
-        return ZStack {
-            // Background star (empty)
+        return ZStack(alignment: .leading) {
+            // Background star (empty) - constrained to exact frame
             Image(systemName: "star")
                 .font(.system(size: starSize, weight: .medium))
                 .foregroundColor(DesignSystem.Colors.starEmpty)
+                .frame(width: starSize, height: starSize) // Constrain star to exact frame
 
-            // Foreground star (filled)
+            // Foreground star (filled) - constrained and masked
             if fillAmount > 0 {
                 Image(systemName: "star.fill")
                     .font(.system(size: starSize, weight: .medium))
                     .foregroundColor(DesignSystem.Colors.starFilled)
-                    .mask(
+                    .frame(width: starSize, height: starSize) // Constrain star to exact frame
+                    .mask(alignment: .leading) {
                         Rectangle()
-                            .size(width: starSize * fillAmount, height: starSize)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    )
+                            .frame(width: starSize * fillAmount, height: starSize) // Mask within exact frame
+                    }
             }
         }
-        .frame(width: starSize, height: starSize)
+        .frame(width: starSize, height: starSize) // Container frame
+        .clipped() // Ensure nothing extends beyond frame
     }
 
     // MARK: - Helper Methods
