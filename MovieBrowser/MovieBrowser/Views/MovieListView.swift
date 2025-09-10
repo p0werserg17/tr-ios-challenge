@@ -108,7 +108,6 @@ struct MovieListView: View {
             SearchBarView(
                 text: $viewModel.searchText,
                 onSearchButtonClicked: {
-                    viewModel.performSearch()
                     viewModel.trackSearchPerformed(viewModel.searchText)
                 },
                 onCancelButtonClicked: {
@@ -145,18 +144,31 @@ struct MovieListView: View {
                     // Dismiss keyboard when tapping in no-results area
                     hideKeyboard()
                 }
-            } else if viewModel.filteredMovies.isEmpty {
-                EmptyStateView(
-                    title: "No Movies Available",
-                    message: "We couldn't find any movies to display. Please try refreshing.",
-                    systemImage: "film",
-                    actionTitle: "Refresh",
-                    action: {
-                        Task {
-                            await viewModel.refreshMovies()
-                        }
+            } else if viewModel.movies.isEmpty && viewModel.searchText.isEmpty {
+                // Only show "No Movies Available" when we have no movies at all AND no search
+                // Keep search bar at top by wrapping in ScrollView
+                ScrollView {
+                    VStack(spacing: DesignSystem.Spacing.xl) {
+                        Spacer(minLength: 40)
+
+                        EmptyStateView(
+                            title: "No Movies Available",
+                            message: "We couldn't find any movies to display. Please try refreshing.",
+                            systemImage: "film",
+                            actionTitle: "Refresh",
+                            action: {
+                                Task {
+                                    await viewModel.refreshMovies()
+                                }
+                            }
+                        )
+
+                        Spacer()
                     }
-                )
+                }
+                .onTapGesture {
+                    hideKeyboard()
+                }
             } else {
                 movieGrid
             }

@@ -130,47 +130,6 @@ struct SearchBarView: View {
     }
 }
 
-// MARK: - Search Results View
-/// Component to display search results count and filters
-struct SearchResultsHeaderView: View {
-    let resultCount: Int
-    let searchTerm: String
-    let onClearSearch: () -> Void
-
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                if !searchTerm.isEmpty {
-                    Text("Search Results")
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.tertiaryLabel)
-
-                    Text("\(resultCount) movie\(resultCount == 1 ? "" : "s") for \"\(searchTerm)\"")
-                        .font(DesignSystem.Typography.callout)
-                        .foregroundColor(DesignSystem.Colors.label)
-                } else {
-                    // Show movie count under the section title (not duplicate the title)
-                    Text("\(resultCount) movie\(resultCount == 1 ? "" : "s")")
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.secondaryLabel)
-                }
-            }
-
-            Spacer()
-
-            if !searchTerm.isEmpty {
-                Button("Clear") {
-                    onClearSearch()
-                }
-                .font(DesignSystem.Typography.callout)
-                .foregroundColor(DesignSystem.Colors.primary)
-            }
-        }
-        .padding(.horizontal, DesignSystem.Spacing.screenPadding)
-        .padding(.vertical, DesignSystem.Spacing.sm)
-    }
-}
-
 // MARK: - Search Suggestions View
 /// Component to display search suggestions
 struct SearchSuggestionsView: View {
@@ -328,11 +287,6 @@ struct FilterChip: View {
         SearchBarView(text: .constant(""))
         SearchBarView(text: .constant("Avengers"))
 
-        SearchResultsHeaderView(
-            resultCount: 5,
-            searchTerm: "Marvel",
-            onClearSearch: {}
-        )
 
         SearchSuggestionsView(
             suggestions: ["Action", "Comedy", "2019", "Marvel"],

@@ -36,18 +36,29 @@ class MovieListViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var movies: [Movie] = []
     @Published var loadingState: LoadingState = .idle
-    @Published var searchText: String = ""
+    @Published var searchText: String = "" {
+        didSet {
+            // Send search text to debounce subject
+            searchSubject.send(searchText)
+        }
+    }
     @Published var likedMovieIds: Set<Int> = []
 
+    // MARK: - Internal Search State
+    @Published private var debouncedSearchText: String = ""
+
     // MARK: - Computed Properties
-    /// Filtered movies based on search text and sorted by year (newest first)
+    /// Filtered movies based on debounced search text with fuzzy matching
     var filteredMovies: [Movie] {
-        let filtered = searchText.isEmpty ? movies : movies.filter { movie in
-            movie.name.localizedCaseInsensitiveContains(searchText) ||
-            movie.yearString.contains(searchText)
+        guard !debouncedSearchText.isEmpty else {
+            return movies.sorted { $0.year > $1.year }
         }
 
-        return filtered.sorted { $0.year > $1.year }
+        // Use search service for professional search experience with fuzzy matching
+        let searchResults = searchService.search(movies, query: debouncedSearchText)
+
+        // Extract movies from search results (already sorted by relevance)
+        return searchResults.map { $0.item }
     }
 
     /// Movies that are currently liked
@@ -63,24 +74,32 @@ class MovieListViewModel: ObservableObject {
     // MARK: - Dependencies
     private let networkService: NetworkServiceProtocol
     private let likesService: LikesServiceProtocol
+    private let searchService: SimpleSearchService
     private var cancellables = Set<AnyCancellable>()
+
+    // MARK: - Search Debouncing
+    private let searchSubject = PassthroughSubject<String, Never>()
 
     // MARK: - Initialization
     init(
         networkService: NetworkServiceProtocol,
-        likesService: LikesServiceProtocol
+        likesService: LikesServiceProtocol,
+        searchService: SimpleSearchService
     ) {
         self.networkService = networkService
         self.likesService = likesService
+        self.searchService = searchService
 
         setupLikesObserver()
+        setupSearchDebouncing()
         loadMoviesIfNeeded()
     }
 
     convenience init() {
         let networkService = NetworkService()
         let likesService = LikesService.shared
-        self.init(networkService: networkService, likesService: likesService)
+        let searchService = SimpleSearchService()
+        self.init(networkService: networkService, likesService: likesService, searchService: searchService)
     }
 
     // MARK: - Public Methods
@@ -146,6 +165,21 @@ class MovieListViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    private func setupSearchDebouncing() {
+        searchSubject
+            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
+            .removeDuplicates()
+            .sink { [weak self] searchText in
+                self?.performSearch(searchText)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func performSearch(_ text: String) {
+        // Update the debounced search text, which triggers filteredMovies to update
+        debouncedSearchText = text
+    }
+
     /// Loads movies only if not already loaded
     private func loadMoviesIfNeeded() {
         if movies.isEmpty && loadingState == .idle {
@@ -165,18 +199,10 @@ class MovieListViewModel: ObservableObject {
 
 // MARK: - Search Functionality Extension
 extension MovieListViewModel {
-    /// Performs search with debouncing to avoid excessive API calls
-    func performSearch() {
-        // In a real app, this could trigger server-side search
-        // For now, we're filtering locally
-        objectWillChange.send()
-    }
-
-    /// Gets search suggestions based on current movies
+    /// Gets intelligent search suggestions based on current movies (uses immediate searchText for better UX)
     var searchSuggestions: [String] {
-        let movieNames = movies.map { $0.name }
-        let years = movies.map { $0.yearString }
-        return Array(Set(movieNames + years)).sorted()
+        guard !searchText.isEmpty else { return [] }
+        return searchService.generateSuggestions(movies, partialQuery: searchText)
     }
 }
 

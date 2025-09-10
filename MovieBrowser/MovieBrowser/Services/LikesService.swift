@@ -12,7 +12,7 @@ import Combine
 // MARK: - Likes Service Protocol
 /// Protocol defining the likes service interface for better testability
 @MainActor
-protocol LikesServiceProtocol {
+protocol LikesServiceProtocol: Sendable {
     func isMovieLiked(_ movieId: Int) -> Bool
     func toggleLike(for movieId: Int)
     func getLikedMovieIds() -> Set<Int>
@@ -22,7 +22,7 @@ protocol LikesServiceProtocol {
 // MARK: - Likes Service Implementation
 /// Service responsible for managing liked movies with local persistence
 @MainActor
-class LikesService: LikesServiceProtocol, ObservableObject {
+final class LikesService: LikesServiceProtocol, ObservableObject, @unchecked Sendable {
 
     // MARK: - Shared Instance
     static let shared = LikesService()
@@ -120,34 +120,7 @@ class LikesService: LikesServiceProtocol, ObservableObject {
     }
 }
 
-// MARK: - Mock Likes Service for Testing
-/// Mock implementation for unit testing and previews
-@MainActor
-class MockLikesService: LikesServiceProtocol {
-    private var likedMovies: Set<Int> = [1, 3] // Pre-populate with some likes for testing
-    private let subject = PassthroughSubject<Set<Int>, Never>()
-
-    var likedMoviesPublisher: AnyPublisher<Set<Int>, Never> {
-        subject.eraseToAnyPublisher()
-    }
-
-    func isMovieLiked(_ movieId: Int) -> Bool {
-        likedMovies.contains(movieId)
-    }
-
-    func toggleLike(for movieId: Int) {
-        if likedMovies.contains(movieId) {
-            likedMovies.remove(movieId)
-        } else {
-            likedMovies.insert(movieId)
-        }
-        subject.send(likedMovies)
-    }
-
-    func getLikedMovieIds() -> Set<Int> {
-        likedMovies
-    }
-}
+// Note: MockLikesService is now located in MockServices.swift for better organization
 
 // MARK: - UIKit Bridge for Haptic Feedback
 #if canImport(UIKit)

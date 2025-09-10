@@ -8,6 +8,13 @@
 
 import Foundation
 
+// MARK: - URLSession Protocol
+protocol URLSessionProtocol {
+    func data(for request: URLRequest) async throws -> (Data, URLResponse)
+}
+
+extension URLSession: URLSessionProtocol {}
+
 // MARK: - Network Errors
 /// Comprehensive error types for network operations
 enum NetworkError: Error, LocalizedError, Equatable {
@@ -54,7 +61,7 @@ enum NetworkError: Error, LocalizedError, Equatable {
 
 // MARK: - Network Service Protocol
 /// Protocol defining the network service interface for better testability
-protocol NetworkServiceProtocol {
+protocol NetworkServiceProtocol: Sendable {
     func fetchMovieList() async throws -> MovieListResponse
     func fetchMovieDetails(id: Int) async throws -> MovieDetails
     func fetchRecommendedMovies(for movieId: Int) async throws -> RecommendedMoviesResponse
@@ -62,15 +69,15 @@ protocol NetworkServiceProtocol {
 
 // MARK: - Network Service Implementation
 /// Main network service handling all API communications
-class NetworkService: NetworkServiceProtocol, ObservableObject {
+final class NetworkService: NetworkServiceProtocol, ObservableObject, @unchecked Sendable {
 
     // MARK: - Properties
-    private let session: URLSession
+    private let session: URLSessionProtocol
     private let baseURL = "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master"
     private let cache = NSCache<NSString, NSData>()
 
     // MARK: - Initialization
-    init(session: URLSession = .shared) {
+    init(session: URLSessionProtocol = URLSession.shared) {
         self.session = session
         setupCache()
     }
@@ -250,7 +257,8 @@ class NetworkService: NetworkServiceProtocol, ObservableObject {
 
 // MARK: - Mock Network Service for Testing
 /// Mock implementation for unit testing and previews
-class MockNetworkService: NetworkServiceProtocol {
+@MainActor
+final class MockNetworkServiceInFile: NetworkServiceProtocol, @unchecked Sendable {
     var shouldThrowError = false
     var errorToThrow: NetworkError = .networkError("Mock error")
 

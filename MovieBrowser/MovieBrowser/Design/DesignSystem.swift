@@ -22,6 +22,7 @@ struct DesignSystem {
         static let background = Color(UIColor.systemBackground)
         static let secondaryBackground = Color(UIColor.secondarySystemBackground)
         static let tertiaryBackground = Color(UIColor.tertiarySystemBackground)
+        static let quaternaryBackground = Color(UIColor.systemBackground).opacity(0.9)
 
         static let label = Color(UIColor.label)
         static let secondaryLabel = Color(UIColor.secondaryLabel)

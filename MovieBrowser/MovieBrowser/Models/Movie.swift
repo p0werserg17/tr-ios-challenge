@@ -103,6 +103,18 @@ extension Movie {
             name: "Inception",
             thumbnail: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/3.jpg",
             year: 2010
+        ),
+        Movie(
+            id: 4,
+            name: "The Dark Knight",
+            thumbnail: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/4.jpg",
+            year: 2008
+        ),
+        Movie(
+            id: 5,
+            name: "The Matrix",
+            thumbnail: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/5.jpg",
+            year: 1999
         )
     ]
 

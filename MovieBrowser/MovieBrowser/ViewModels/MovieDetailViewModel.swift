@@ -108,8 +108,10 @@ class MovieDetailViewModel: ObservableObject {
             // }
 
         } catch let error as NetworkError {
+            movieDetails = nil
             detailsLoadingState = .failed(error)
         } catch {
+            movieDetails = nil
             detailsLoadingState = .failed(.networkError(error.localizedDescription))
         }
     }

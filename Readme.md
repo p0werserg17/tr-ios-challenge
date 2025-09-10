@@ -12,11 +12,11 @@ MovieBrowser is a modern, feature-rich iOS application built with **SwiftUI** th
 - **Detailed Movie Information**: Comprehensive details including ratings, descriptions, and release dates
 - **Smart Recommendations**: Discover related movies with seamless navigation
 - **Favorites System**: Like/unlike movies with persistent local storage
-- **Advanced Search**: Real-time search with intelligent filtering
+- **Professional Search**: Fuzzy matching, typo tolerance, and intelligent suggestions
 - **Responsive Design**: Optimized for all iPhone sizes with adaptive layouts
 - **Dark Mode**: Full support for light and dark appearance modes
-- **Accessibility**: Complete VoiceOver and Dynamic Type support
-- **Smooth Animations**: Delightful micro-interactions throughout the app
+- **Accessibility**: VoiceOver support with semantic labels
+- **Visual Polish**: Custom loading states and error handling
 
 ---
 
@@ -39,8 +39,8 @@ The app follows a clean **Model-View-ViewModel (MVVM)** pattern with proper sepa
                        │    Services     │
                        │                 │
                        │ • NetworkService│
-                       │ • CacheService  │
                        │ • LikesService  │
+                       │ • SearchService │
                        └─────────────────┘
 ```
 
@@ -57,10 +57,10 @@ The app follows a clean **Model-View-ViewModel (MVVM)** pattern with proper sepa
 ## 🛠️ Technical Implementation
 
 ### Core Technologies
-- **Swift 5.9+**: Latest Swift features and best practices
+- **Swift 6.1.2**: Latest Swift features and best practices
 - **SwiftUI**: Declarative UI framework with modern design patterns
 - **Async/Await**: Modern concurrency for network operations
-- **Combine**: Reactive programming for state management
+- **Combine**: Reactive programming for state management and debouncing
 - **Swift Package Manager**: Native dependency management
 - **XCTest**: Comprehensive unit test coverage
 
@@ -73,8 +73,8 @@ The app integrates with the TradeRev movie API:
 ### Advanced Features
 
 #### 🌐 Network Layer
-- **Async/Await**: Modern concurrency patterns
-- **Error Handling**: Comprehensive error types with recovery suggestions
+- **Async/Await**: Modern concurrency patterns throughout
+- **Error Handling**: Comprehensive error types with user-friendly messages
 - **Caching**: Intelligent response caching for better performance
 - **Retry Logic**: Automatic retry mechanisms for failed requests
 
@@ -85,30 +85,31 @@ The app integrates with the TradeRev movie API:
 - **Animations**: Smooth, purposeful animations that enhance user experience
 
 #### 💾 Data Persistence
-- **UserDefaults**: Lightweight storage for user preferences
-- **Local Caching**: Image and response caching for offline-friendly experience
+- **UserDefaults**: Lightweight storage for user preferences and favorites
+- **Image Caching**: Advanced image loading and caching with Kingfisher
 - **State Persistence**: Maintains user's liked movies across app launches
 
 #### 🔍 Search & Filtering
-- **Real-time Search**: Instant filtering as user types
-- **Multi-field Search**: Search by movie name or year
-- **Case-insensitive**: Flexible search that works with any case
-- **Search History**: Maintains search context for better UX
+- **Professional Search System**: Fuzzy matching with typo tolerance
+- **Real-time Suggestions**: Instant autocomplete as user types
+- **Debounced Search**: Optimized search with 300ms debouncing
+- **Multi-field Search**: Search by movie name, year, and other fields
+- **Relevance Scoring**: Results ranked by match quality
 
 ---
 
 ## 📱 User Experience
 
 ### Intuitive Navigation
-- **Tab-based Structure**: Easy access to main sections
 - **Sheet Presentations**: Modal detail views for focused content
-- **Back Navigation**: Consistent navigation patterns throughout
+- **Smooth Transitions**: Consistent navigation patterns throughout
+- **Keyboard Management**: Intelligent keyboard dismissal
 
 ### Performance Optimizations
-- **Lazy Loading**: Images and content load on-demand
-- **Memory Management**: Efficient image caching with automatic cleanup
-- **Smooth Scrolling**: Optimized list performance for large datasets
-- **Background Loading**: Non-blocking network operations
+- **Lazy Loading**: Images and content load on-demand with shimmer effects
+- **Memory Management**: Efficient image caching with Kingfisher
+- **Smooth Scrolling**: Optimized list performance with LazyVGrid
+- **Background Loading**: Non-blocking network operations with async/await
 
 ### Error Handling
 - **User-Friendly Messages**: Clear, actionable error messages
@@ -124,64 +125,34 @@ The app integrates with the TradeRev movie API:
 The app includes extensive unit tests covering:
 
 #### Network Layer Tests
-- ✅ Successful API responses
-- ✅ Network error handling
-- ✅ JSON parsing and validation
-- ✅ Cache functionality
-- ✅ Timeout handling
+- ✅ Successful API responses and JSON parsing
+- ✅ Network error handling and timeout scenarios
+- ✅ Cache functionality and validation
 
 #### ViewModel Tests
-- ✅ State management
-- ✅ Search functionality
-- ✅ Like/unlike operations
-- ✅ Error state handling
-- ✅ Loading state transitions
+- ✅ State management and loading states
+- ✅ Search functionality and debouncing
+- ✅ Like/unlike operations and synchronization
+- ✅ Error state handling and recovery
 
 #### Service Tests
-- ✅ Likes persistence
-- ✅ Data synchronization
-- ✅ UserDefaults integration
-- ✅ Publisher behavior
+- ✅ Likes persistence and UserDefaults integration
+- ✅ Data synchronization across screens
+- ✅ Publisher behavior and Combine integration
 
-#### Model Tests
-- ✅ JSON decoding
-- ✅ Data validation
-- ✅ Computed properties
-- ✅ Equatable conformance
-
-### Test Execution
-```bash
-# Run all tests
-xcodebuild test -scheme MovieBrowser -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
-
-# Run tests with coverage
-xcodebuild test -scheme MovieBrowser -destination 'platform=iOS Simulator,name=iPhone 15 Pro' -enableCodeCoverage YES
-```
+#### Search Tests
+- ✅ **Exact Matching**: Perfect string matches with highest relevance
+- ✅ **Fuzzy Matching**: Typo tolerance with Levenshtein distance (e.g., "drk" → "dark")
+- ✅ **Prefix/Contains**: Partial word matching scenarios
+- ✅ **Case Insensitive**: Various capitalization scenarios
+- ✅ **Year Search**: Numeric field matching capabilities
+- ✅ **Debounce Testing**: Verifies 300ms search debouncing behavior
+- ✅ **Suggestions**: Autocomplete functionality and edge cases
+- ✅ **Performance**: Search performance with large datasets
 
 ---
 
-## 🚀 Getting Started
-
-### Requirements
-- **Xcode**: 15.0+
-- **iOS**: 17.0+
-- **Swift**: 5.9+
-
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/ldlefebvre/tr-ios-challenge.git
-   cd tr-ios-challenge
-   ```
-
-2. Open the project:
-   ```bash
-   open MovieBrowser/MovieBrowser.xcodeproj
-   ```
-
-3. Build and run:
-   - Select your target device/simulator
-   - Press `Cmd+R` to build and run
+## 🚀 Development Environment
 
 ### Dependencies
 This project uses Swift Package Manager for dependency management:
@@ -192,10 +163,10 @@ This project uses Swift Package Manager for dependency management:
   - Includes retry logic and fade-in animations for better UX
 
 ### Development Environment
-- **Xcode Version**: 16.4 (Build 16F6)
-- **Swift Version**: 6.1.2
-- **iOS Deployment Target**: 16.0 (recommended)
-- **Test Device**: iPhone 16 Pro Simulator (iOS 18.6)
+- **Xcode Version**: 16.4
+- **Swift Version**: 6.1.2 (Language Mode: Swift 5)
+- **iOS Deployment Target**: 16.0
+- **Test Device**: iPhone 16 Pro Simulator
 
 ---
 
@@ -205,30 +176,32 @@ This project uses Swift Package Manager for dependency management:
 MovieBrowser/
 ├── MovieBrowser/
 │   ├── Models/
-│   │   └── Movie.swift                 # Data models with JSON decoding
+│   │   └── Movie.swift                    # Data models with JSON decoding
 │   ├── Services/
-│   │   ├── NetworkService.swift        # API communication layer
-│   │   ├── LikesService.swift         # Local persistence for favorites
-│   │   └── ImageCacheService.swift    # Image caching and loading
+│   │   ├── NetworkService.swift           # API communication layer
+│   │   ├── LikesService.swift            # Local persistence for favorites
+│   │   └── SimpleSearchService.swift     # Professional search implementation
 │   ├── ViewModels/
-│   │   ├── MovieListViewModel.swift   # List screen business logic
-│   │   └── MovieDetailViewModel.swift # Detail screen business logic
+│   │   ├── MovieListViewModel.swift      # List screen business logic
+│   │   └── MovieDetailViewModel.swift    # Detail screen business logic
 │   ├── Views/
-│   │   ├── MovieListView.swift        # Main movie list interface
-│   │   └── MovieDetailView.swift      # Movie detail interface
+│   │   ├── MovieListView.swift           # Main movie list interface
+│   │   └── MovieDetailView.swift         # Movie detail interface
 │   ├── Components/
-│   │   ├── MovieCardView.swift        # Reusable movie card component
-│   │   ├── StarRatingView.swift       # Rating display component
-│   │   └── SearchBarView.swift        # Search interface component
+│   │   ├── MovieCardView.swift           # Reusable movie card component
+│   │   ├── SimpleAsyncImageView.swift    # Enhanced image loading component
+│   │   └── SearchBarView.swift           # Search interface component
 │   ├── Design/
-│   │   └── DesignSystem.swift         # Design tokens and styling
-│   ├── ContentView.swift              # Root view
-│   └── MovieBrowserApp.swift          # App entry point
+│   │   └── DesignSystem.swift            # Design tokens and styling
+│   ├── ContentView.swift                 # Root view
+│   └── MovieBrowserApp.swift             # App entry point
 ├── MovieBrowserTests/
-│   ├── NetworkServiceTests.swift      # Network layer tests
-│   ├── MovieListViewModelTests.swift  # ViewModel tests
-│   └── LikesServiceTests.swift        # Persistence tests
-└── README.md                          # This documentation
+│   ├── NetworkServiceTests.swift         # Network layer tests
+│   ├── MovieListViewModelTests.swift     # ViewModel tests
+│   ├── LikesServiceTests.swift           # Persistence tests
+│   ├── SimpleSearchServiceTests.swift    # Search functionality tests
+│   └── MockServices.swift                # Test mocks and utilities
+└── README.md                             # This documentation
 ```
 
 ---
@@ -243,53 +216,39 @@ MovieBrowser/
 - **Card-based Layout**: Clean, scannable content organization
 
 ### Interaction Design
-- **Haptic Feedback**: Subtle tactile responses for key interactions
-- **Smooth Animations**: Spring-based animations that feel natural
-- **Loading States**: Clear progress indicators during async operations
+- **Loading States**: Custom shimmer effects for image loading placeholders
 - **Error Recovery**: Intuitive retry mechanisms for failed operations
+- **Keyboard Handling**: Smart keyboard dismissal throughout the app
+- **Visual Feedback**: Clear loading and error states with appropriate messaging
 
 ### Accessibility
-- **VoiceOver Support**: Complete screen reader compatibility
-- **Dynamic Type**: Text scales appropriately for user preferences
-- **High Contrast**: Works well in high contrast accessibility modes
-- **Touch Targets**: All interactive elements meet minimum 44pt requirement
+- **VoiceOver Support**: Accessibility labels added to key interactive elements
+- **Semantic Structure**: Proper use of SwiftUI's built-in accessibility features
+- **Touch Targets**: Interactive elements designed with appropriate sizing
+- **Clear Visual Hierarchy**: Consistent typography and spacing for readability
 
 ---
 
-## 🔄 Trade-offs & Future Enhancements
+## 🔄 Search Capabilities
 
-### Current Trade-offs
-1. **Local Storage vs Cloud Sync**: Currently using UserDefaults for simplicity; could be enhanced with CloudKit for cross-device sync
-2. **Image Caching**: Basic NSCache implementation; could be enhanced with disk caching and expiration policies
-3. **Search**: Client-side filtering; could be enhanced with server-side search for larger datasets
-4. **Offline Support**: Basic caching; could be enhanced with full offline mode using Core Data
+The app features a **professional search system** designed for interview demonstration:
 
-### Future Enhancements
-- **Advanced Search**: Filters by genre, rating, decade
-- **User Profiles**: Personal movie collections and viewing history
-- **Social Features**: Share favorite movies with friends
-- **Watch Lists**: Create and manage custom movie lists
-- **Push Notifications**: New movie recommendations
-- **iPad Support**: Adaptive layouts for larger screens
-- **Apple Watch**: Quick access to favorites and ratings
-- **Siri Integration**: Voice commands for movie lookup
+### 🔍 **Search Features**
+- ✅ **Exact Matching**: Perfect string matches with highest relevance
+- ✅ **Prefix Matching**: Finds movies starting with search terms
+- ✅ **Contains Matching**: Searches within movie titles
+- ✅ **Fuzzy Matching**: Handles typos with Levenshtein distance algorithm
+- ✅ **Year Search**: Search movies by release year
+- ✅ **Case Insensitive**: Works regardless of capitalization
+- ✅ **Word-based Search**: Matches individual words in titles
+- ✅ **Relevance Scoring**: Results ranked by match quality
 
----
-
-## 📈 Performance Metrics
-
-### App Performance
-- **Launch Time**: < 2 seconds cold start
-- **Memory Usage**: < 50MB average during normal usage
-- **Network Efficiency**: Response caching reduces redundant API calls
-- **Smooth Scrolling**: 60fps maintained during list scrolling
-- **Image Loading**: Progressive loading with placeholders
-
-### Code Quality
-- **Test Coverage**: > 85% code coverage
-- **Cyclomatic Complexity**: Low complexity with single-responsibility functions
-- **Documentation**: Comprehensive inline documentation
-- **Code Style**: Consistent Swift style guide adherence
+### 💡 **User Experience Features**
+- ✅ **Smart Suggestions**: Autocomplete based on available movies
+- ✅ **Debounced Search**: 300ms debouncing to optimize performance
+- ✅ **Immediate Suggestions**: Autocomplete responds instantly
+- ✅ **Performance Optimized**: Fast search even with large collections
+- ✅ **Clean Interface**: Intuitive search bar with clear results
 
 ---
 
@@ -298,7 +257,7 @@ MovieBrowser/
 ### ✅ Mandatory Requirements
 - [x] **Language & UI**: Swift 5+ with SwiftUI ✨
 - [x] **Concurrency**: Swift Concurrency (async/await) throughout ✨
-- [x] **Package Management**: Swift Package Manager (no external dependencies needed) ✨
+- [x] **Package Management**: Swift Package Manager with Kingfisher ✨
 - [x] **Architecture**: Clean MVVM pattern with proper separation ✨
 - [x] **Networking**: Comprehensive error handling for all states ✨
 - [x] **Repository**: Forked public repository ✨
@@ -310,12 +269,108 @@ MovieBrowser/
 - [x] **Likes System**: Persistent favorites with visual feedback ✨
 
 ### ✅ Bonus Features (All Implemented!)
-- [x] **Unit Tests**: Comprehensive test suite with >85% coverage ✨
-- [x] **Image Caching**: Smart image loading and caching system ✨
+- [x] **Unit Tests**: Comprehensive test suite covering core functionality ✨
+- [x] **Image Caching**: Advanced image loading with Kingfisher ✨
 - [x] **Dark Mode**: Full light/dark mode support ✨
-- [x] **Accessibility**: Complete VoiceOver and Dynamic Type support ✨
-- [x] **Performance**: Optimized for smooth 60fps experience ✨
+- [x] **Accessibility**: VoiceOver labels and semantic structure implementation ✨
+- [x] **Performance**: Optimized for smooth scrolling experience ✨
 - [x] **Error Recovery**: User-friendly error handling with retry options ✨
+
+---
+
+## 📈 Performance & Quality
+
+### App Performance
+- **Network Efficiency**: Response caching reduces redundant API calls
+- **Smooth Scrolling**: Optimized list performance with lazy loading
+- **Image Loading**: Progressive loading with shimmer placeholders and error handling
+
+### Code Quality
+- **Test Coverage**: Comprehensive unit test suite covering core functionality
+- **Architecture**: Clean separation of concerns with MVVM pattern
+- **Documentation**: Comprehensive inline documentation throughout
+- **Code Style**: Consistent Swift style guide adherence
+- **Error Handling**: Robust error handling with user-friendly recovery options
+
+---
+
+## 🔄 Trade-offs & Future Enhancements
+
+### Current Implementation Trade-offs
+
+#### **1. Search Implementation**
+- **Current**: Client-side search with fuzzy matching for interview demonstration
+- **Trade-off**: Works well for small datasets but would need server-side search for larger catalogs
+- **Future Enhancement**: Implement server-side search with pagination and advanced filtering
+
+#### **2. Local Storage**
+- **Current**: UserDefaults for favorites persistence (simple and effective)
+- **Trade-off**: No cross-device synchronization
+- **Future Enhancement**: CloudKit integration for syncing favorites across devices
+
+#### **3. Image Caching**
+- **Current**: Kingfisher with default settings
+- **Trade-off**: Basic cache management without custom policies
+- **Future Enhancement**: Custom cache expiration policies and offline image storage
+
+#### **4. Accessibility**
+- **Current**: Basic accessibility labels on key interactive elements
+- **Trade-off**: Limited to essential VoiceOver support
+- **Future Enhancement**: Complete accessibility audit including:
+  - Full VoiceOver navigation support
+  - Dynamic Type implementation for all text elements
+  - High contrast mode optimization
+  - Voice Control compatibility
+  - Switch Control support
+
+### Potential Future Features
+
+#### **Enhanced User Experience**
+- **Advanced Animations**: Spring-based transitions and micro-interactions
+- **Haptic Feedback**: Tactile responses for key user actions
+- **Pull-to-Refresh**: Manual refresh capability for movie lists
+- **Infinite Scrolling**: Load more movies as user scrolls
+
+#### **Advanced Functionality**
+- **Offline Mode**: Core Data implementation for offline movie browsing
+- **Advanced Search Filters**: Filter by genre, rating range, decade, director
+- **User Profiles**: Personal movie collections and viewing history
+- **Social Features**: Share favorite movies and reviews with friends
+- **Watch Lists**: Create and manage custom movie collections
+- **Movie Ratings**: Allow users to rate movies they've watched
+
+#### **Platform Expansion**
+- **iPad Support**: Adaptive layouts optimized for larger screens
+- **Apple Watch**: Quick access to favorites and movie lookup
+- **macOS**: Catalyst app for desktop experience
+- **tvOS**: Apple TV app for big screen browsing
+
+#### **Technical Enhancements**
+- **Push Notifications**: New movie recommendations and updates
+- **Siri Integration**: Voice commands for movie search and favorites
+- **Shortcuts Support**: Custom Siri Shortcuts for common actions
+- **Widget Support**: Home screen widgets showing favorite movies
+- **Background App Refresh**: Update movie data in background
+
+#### **Analytics & Performance**
+- **User Analytics**: Track usage patterns for better UX decisions
+- **Performance Monitoring**: Real-time performance metrics and crash reporting
+- **A/B Testing**: Test different UI variations for optimization
+- **Advanced Caching**: Predictive caching based on user behavior
+
+### Architecture Considerations
+
+#### **Scalability Improvements**
+- **Coordinator Pattern**: Enhanced navigation management for complex flows
+- **Dependency Container**: More sophisticated dependency injection
+- **Feature Modules**: Modular architecture for better code organization
+- **Core Data**: Replace UserDefaults with robust local database
+
+#### **Code Quality Enhancements**
+- **SwiftLint Integration**: Automated code style enforcement
+- **Continuous Integration**: Automated testing and deployment pipeline
+- **Code Coverage Goals**: Achieve and maintain >90% test coverage
+- **Documentation**: Generate and maintain API documentation
 
 ---
 
@@ -325,7 +380,7 @@ MovieBrowser/
 
 ### Contact
 - **GitHub**: [ldlefebvre](https://github.com/ldlefebvre)
-- **LinkedIn**: [Laurent Lefebvre](https://linkedin.com/in/laurent-lefebvre)
+- **LinkedIn**: [Laurent Lefebvre](https://www.linkedin.com/in/laurentlefebvre/)
 
 ---
 
