@@ -29,8 +29,23 @@ struct DesignSystem {
         static let tertiaryLabel = Color(UIColor.tertiaryLabel)
 
         // Custom semantic colors
-        static let cardBackground = Color(UIColor.systemBackground)
-        static let cardShadow = Color.black.opacity(0.1)
+        static let cardBackground = Color(UIColor { traitCollection in
+            switch traitCollection.userInterfaceStyle {
+            case .dark:
+                return UIColor.secondarySystemBackground
+            default:
+                return UIColor.systemBackground
+            }
+        })
+
+        static let cardShadow = Color(UIColor { traitCollection in
+            switch traitCollection.userInterfaceStyle {
+            case .dark:
+                return UIColor.label.withAlphaComponent(0.1)
+            default:
+                return UIColor.black.withAlphaComponent(0.1)
+            }
+        })
         static let separator = Color(UIColor.separator)
 
         // Status colors

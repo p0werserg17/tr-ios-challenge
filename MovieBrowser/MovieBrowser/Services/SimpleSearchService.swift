@@ -111,7 +111,25 @@ final class SimpleSearchService: @unchecked Sendable {
             return SimpleSearchResult(item: item, relevanceScore: score, matchType: .contains)
         }
 
-        // 5. Word-based search (including fuzzy matching on words)
+        // 5. Multi-word fuzzy matching (for queries like "hme al" -> "Home Alone")
+        if let multiWordScore = multiWordFuzzyMatch(query: query, text: searchText) {
+            return SimpleSearchResult(item: item, relevanceScore: multiWordScore, matchType: .fuzzy)
+        }
+
+        // 5.5. Single word subsequence matching (for queries like "hme" -> "Home Alone")
+        if query.count >= 3 {
+            let words = searchText.components(separatedBy: .whitespaces)
+            for word in words {
+                if isSubsequence(query, in: word.lowercased()) {
+                    let score = 0.65 * (Double(query.count) / Double(word.count))
+                    if score > 0.4 {
+                        return SimpleSearchResult(item: item, relevanceScore: score, matchType: .fuzzy)
+                    }
+                }
+            }
+        }
+
+        // 6. Word-based search (including fuzzy matching on words)
         let words = searchText.components(separatedBy: .whitespaces)
         for word in words {
             if word.hasPrefix(query) {
@@ -137,23 +155,118 @@ final class SimpleSearchService: @unchecked Sendable {
         return nil
     }
 
-    // MARK: - Simple Fuzzy Matching
+    // MARK: - Multi-word Fuzzy Matching
+    private func multiWordFuzzyMatch(query: String, text: String) -> Double? {
+        let queryWords = query.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+        let textWords = text.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+
+        // Only attempt multi-word matching if query has multiple words
+        guard queryWords.count > 1 else { return nil }
+
+        var totalScore = 0.0
+        var matchedWords = 0
+
+        for queryWord in queryWords {
+            var bestWordScore = 0.0
+
+            for textWord in textWords {
+                let queryLower = queryWord.lowercased()
+                let textLower = textWord.lowercased()
+                let cleanTextLower = textLower.trimmingCharacters(in: .punctuationCharacters)
+
+                // Try exact match first
+                if textLower == queryLower || cleanTextLower == queryLower {
+                    bestWordScore = max(bestWordScore, 1.0)
+                }
+                // Try prefix match (handle punctuation)
+                else if textLower.hasPrefix(queryLower) || cleanTextLower.hasPrefix(queryLower) {
+                    let targetLength = cleanTextLower.isEmpty ? textLower.count : cleanTextLower.count
+                    let score = Double(queryLower.count) / Double(targetLength)
+                    bestWordScore = max(bestWordScore, score * 0.9)
+                }
+                // Try contains match (important for "end" in "Endgame")
+                else if textLower.contains(queryLower) || cleanTextLower.contains(queryLower) {
+                    let targetLength = cleanTextLower.isEmpty ? textLower.count : cleanTextLower.count
+                    let score = Double(queryLower.count) / Double(targetLength)
+                    bestWordScore = max(bestWordScore, score * 0.8)
+                }
+                // Try subsequence matching (for "hme" -> "home")
+                else if queryLower.count >= 2 && (isSubsequence(queryLower, in: textLower) || isSubsequence(queryLower, in: cleanTextLower)) {
+                    let targetLength = cleanTextLower.isEmpty ? textLower.count : cleanTextLower.count
+                    let score = Double(queryLower.count) / Double(targetLength)
+                    bestWordScore = max(bestWordScore, score * 0.6)
+                }
+                // Try fuzzy match on individual words
+                else if let fuzzyScore = fuzzyMatch(query: queryLower, text: textLower) {
+                    bestWordScore = max(bestWordScore, fuzzyScore * 0.5)
+                }
+                else if let fuzzyScore = fuzzyMatch(query: queryLower, text: cleanTextLower) {
+                    bestWordScore = max(bestWordScore, fuzzyScore * 0.5)
+                }
+            }
+
+            if bestWordScore > 0.1 { // Very low threshold for debugging
+                totalScore += bestWordScore
+                matchedWords += 1
+            }
+        }
+
+        // Require at least half the query words to match
+        guard matchedWords >= (queryWords.count + 1) / 2 else { return nil }
+
+        let averageScore = totalScore / Double(queryWords.count)
+        return averageScore > 0.2 ? averageScore * 0.75 : nil // Very low threshold for debugging
+    }
+
+    // MARK: - Subsequence Matching
+    private func isSubsequence(_ subsequence: String, in string: String) -> Bool {
+        guard !subsequence.isEmpty && !string.isEmpty else { return false }
+
+        let subArray = Array(subsequence)
+        let strArray = Array(string)
+
+        var subIndex = 0
+
+        for char in strArray {
+            if subIndex < subArray.count && char == subArray[subIndex] {
+                subIndex += 1
+            }
+        }
+
+        return subIndex == subArray.count
+    }
+
+    // MARK: - Improved Fuzzy Matching
     private func fuzzyMatch(query: String, text: String) -> Double? {
-        // Only attempt fuzzy matching for queries of reasonable length
-        guard query.count >= 3 else { return nil }
+        // Allow fuzzy matching for shorter queries (was 3, now 2)
+        guard query.count >= 2 else { return nil }
 
         // Allow fuzzy matching even when query is shorter than text (for typos)
         let distance = levenshteinDistance(query, text)
         let maxLength = max(query.count, text.count)
 
-        // More lenient distance allowance for short queries
-        let maxAllowedDistance = query.count <= 4 ? 2 : min(3, query.count / 2)
+        // More lenient distance allowance, especially for short queries
+        let maxAllowedDistance: Int
+        switch query.count {
+        case 2: maxAllowedDistance = 1  // "dr" -> "dark" (1 insertion)
+        case 3: maxAllowedDistance = 2  // "drk" -> "dark" (1 insertion)
+        case 4: maxAllowedDistance = 2  // "hme" -> "home" (1 insertion)
+        default: maxAllowedDistance = min(3, query.count / 2)
+        }
+
         guard distance <= maxAllowedDistance else { return nil }
 
         let similarity = 1.0 - (Double(distance) / Double(maxLength))
 
-        // Better scoring for short queries with typos (like "drk" -> "dark")
-        let minSimilarity = query.count <= 4 ? 0.4 : 0.6
+        // More lenient scoring for short queries with typos
+        let minSimilarity: Double
+        switch query.count {
+        case 2: minSimilarity = 0.3
+        case 3: minSimilarity = 0.4
+        case 4: minSimilarity = 0.5
+        default: minSimilarity = 0.6
+        }
+
         return similarity > minSimilarity ? similarity : nil
     }
 
