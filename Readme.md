@@ -12,11 +12,12 @@ MovieBrowser is a modern, feature-rich iOS application built with **SwiftUI** th
 - **Detailed Movie Information**: Comprehensive details including ratings, descriptions, and release dates
 - **Smart Recommendations**: Discover related movies with seamless navigation
 - **Favorites System**: Like/unlike movies with persistent local storage
-- **Professional Search**: Fuzzy matching, typo tolerance, and intelligent suggestions
+- **Professional Search**: Fuzzy matching, typo tolerance, and multi-word search
+- **Advanced Filtering**: Genre, decade, rating, and favorites filtering system
 - **Responsive Design**: Optimized for all iPhone sizes with adaptive layouts
 - **Dark Mode**: Full support for light and dark appearance modes
-- **Accessibility**: VoiceOver support with semantic labels
-- **Visual Polish**: Custom loading states and error handling
+- **Pull-to-Refresh**: Manual refresh capability with loading states
+- **Visual Polish**: Loading states, error handling, and smooth animations
 
 ---
 
@@ -57,7 +58,7 @@ The app follows a clean **Model-View-ViewModel (MVVM)** pattern with proper sepa
 ## 🛠️ Technical Implementation
 
 ### Core Technologies
-- **Swift 6.1.2**: Latest Swift features and best practices
+- **Swift 6.1.2**: Latest Swift features (Language Mode: Swift 6)
 - **SwiftUI**: Declarative UI framework with modern design patterns
 - **Async/Await**: Modern concurrency for network operations
 - **Combine**: Reactive programming for state management and debouncing
@@ -81,19 +82,19 @@ The app integrates with the TradeRev movie API:
 #### 🎨 Design System
 - **Consistent Styling**: Centralized design tokens for colors, typography, and spacing
 - **Dark Mode**: Adaptive colors that work in both light and dark modes
-- **Accessibility**: Full VoiceOver support and Dynamic Type compatibility
-- **Animations**: Smooth, purposeful animations that enhance user experience
+- **Animations**: Card tap, like button, and loading animations
+- **Modern UI**: Clean, professional interface following iOS conventions
 
 #### 💾 Data Persistence
-- **UserDefaults**: Lightweight storage for user preferences and favorites
+- **UserDefaults**: Single key storage for liked movies persistence
 - **Image Caching**: Advanced image loading and caching with Kingfisher
 - **State Persistence**: Maintains user's liked movies across app launches
 
 #### 🔍 Search & Filtering
 - **Professional Search System**: Fuzzy matching with typo tolerance
-- **Real-time Suggestions**: Instant autocomplete as user types
+- **Multi-word Search**: Handles queries like "av end" → "Avengers: Endgame"
 - **Debounced Search**: Optimized search with 300ms debouncing
-- **Multi-field Search**: Search by movie name, year, and other fields
+- **Advanced Filtering**: Genre, decade, rating range, and favorites filters
 - **Relevance Scoring**: Results ranked by match quality
 
 ---
@@ -102,20 +103,20 @@ The app integrates with the TradeRev movie API:
 
 ### Intuitive Navigation
 - **Sheet Presentations**: Modal detail views for focused content
-- **Smooth Transitions**: Consistent navigation patterns throughout
 - **Keyboard Management**: Intelligent keyboard dismissal
+- **Pull-to-Refresh**: Built-in refresh functionality
 
 ### Performance Optimizations
-- **Lazy Loading**: Images and content load on-demand with shimmer effects
+- **LazyVGrid**: Optimized grid performance for smooth scrolling
 - **Memory Management**: Efficient image caching with Kingfisher
-- **Smooth Scrolling**: Optimized list performance with LazyVGrid
+- **Image Retry**: Automatic retry for failed image loads (3 attempts)
 - **Background Loading**: Non-blocking network operations with async/await
 
 ### Error Handling
 - **User-Friendly Messages**: Clear, actionable error messages
-- **Retry Mechanisms**: Easy retry options for failed operations
+- **Retry Mechanisms**: Retry buttons for failed operations
 - **Graceful Degradation**: App remains functional even with network issues
-- **Loading States**: Clear feedback during async operations
+- **Loading States**: Progress indicators during async operations
 
 ---
 
@@ -143,11 +144,10 @@ The app includes extensive unit tests covering:
 #### Search Tests
 - ✅ **Exact Matching**: Perfect string matches with highest relevance
 - ✅ **Fuzzy Matching**: Typo tolerance with Levenshtein distance (e.g., "drk" → "dark")
-- ✅ **Prefix/Contains**: Partial word matching scenarios
+- ✅ **Multi-word Search**: Partial word matching like "av end" → "Avengers: Endgame"
 - ✅ **Case Insensitive**: Various capitalization scenarios
 - ✅ **Year Search**: Numeric field matching capabilities
 - ✅ **Debounce Testing**: Verifies 300ms search debouncing behavior
-- ✅ **Suggestions**: Autocomplete functionality and edge cases
 - ✅ **Performance**: Search performance with large datasets
 
 ---
@@ -164,68 +164,32 @@ This project uses Swift Package Manager for dependency management:
 
 ### Development Environment
 - **Xcode Version**: 16.4
-- **Swift Version**: 6.1.2 (Language Mode: Swift 5)
+- **Swift Version**: 6.1.2 (Language Mode: Swift 6)
 - **iOS Deployment Target**: 16.0
 - **Test Device**: iPhone 16 Pro Simulator
-
----
-
-## 📊 Project Structure
-
-```
-MovieBrowser/
-├── MovieBrowser/
-│   ├── Models/
-│   │   └── Movie.swift                    # Data models with JSON decoding
-│   ├── Services/
-│   │   ├── NetworkService.swift           # API communication layer
-│   │   ├── LikesService.swift            # Local persistence for favorites
-│   │   └── SimpleSearchService.swift     # Professional search implementation
-│   ├── ViewModels/
-│   │   ├── MovieListViewModel.swift      # List screen business logic
-│   │   └── MovieDetailViewModel.swift    # Detail screen business logic
-│   ├── Views/
-│   │   ├── MovieListView.swift           # Main movie list interface
-│   │   └── MovieDetailView.swift         # Movie detail interface
-│   ├── Components/
-│   │   ├── MovieCardView.swift           # Reusable movie card component
-│   │   ├── SimpleAsyncImageView.swift    # Enhanced image loading component
-│   │   └── SearchBarView.swift           # Search interface component
-│   ├── Design/
-│   │   └── DesignSystem.swift            # Design tokens and styling
-│   ├── ContentView.swift                 # Root view
-│   └── MovieBrowserApp.swift             # App entry point
-├── MovieBrowserTests/
-│   ├── NetworkServiceTests.swift         # Network layer tests
-│   ├── MovieListViewModelTests.swift     # ViewModel tests
-│   ├── LikesServiceTests.swift           # Persistence tests
-│   ├── SimpleSearchServiceTests.swift    # Search functionality tests
-│   └── MockServices.swift                # Test mocks and utilities
-└── README.md                             # This documentation
-```
 
 ---
 
 ## 🎨 Design Highlights
 
 ### Visual Design
-- **Modern iOS Aesthetic**: Follows Apple's Human Interface Guidelines
-- **Consistent Typography**: San Francisco font family with proper hierarchy
+- **Clean Interface**: Modern card-based layout with consistent styling
 - **Color Harmony**: Carefully chosen color palette supporting light/dark modes
-- **Spacing System**: 8pt grid system for consistent layouts
 - **Card-based Layout**: Clean, scannable content organization
+- **Professional Appearance**: Polished UI following iOS conventions
 
 ### Interaction Design
-- **Loading States**: Custom shimmer effects for image loading placeholders
+- **Loading States**: Progress indicators, loading spinners, and shimmer effects
 - **Error Recovery**: Intuitive retry mechanisms for failed operations
 - **Keyboard Handling**: Smart keyboard dismissal throughout the app
 - **Visual Feedback**: Clear loading and error states with appropriate messaging
 
 ### Accessibility
-- **VoiceOver Support**: Accessibility labels added to key interactive elements
-- **Semantic Structure**: Proper use of SwiftUI's built-in accessibility features
+- **Comprehensive Implementation**: VoiceOver labels, hints, and traits on key interactive elements
+- **SwiftUI Integration**: Uses SwiftUI's built-in accessibility features
 - **Touch Targets**: Interactive elements designed with appropriate sizing
-- **Clear Visual Hierarchy**: Consistent typography and spacing for readability
+- **Semantic Structure**: Proper heading hierarchy and element grouping
+- **Future Enhancement**: Dynamic Type support and high contrast mode optimization
 
 ---
 
@@ -244,18 +208,18 @@ The app features a **professional search system** designed for interview demonst
 - ✅ **Relevance Scoring**: Results ranked by match quality
 
 ### 💡 **User Experience Features**
-- ✅ **Smart Suggestions**: Autocomplete based on available movies
 - ✅ **Debounced Search**: 300ms debouncing to optimize performance
-- ✅ **Immediate Suggestions**: Autocomplete responds instantly
+- ✅ **Multi-word Matching**: Handles partial words and typos
 - ✅ **Performance Optimized**: Fast search even with large collections
 - ✅ **Clean Interface**: Intuitive search bar with clear results
+- ✅ **Advanced Filtering**: Professional filter system with bottom sheet UI
 
 ---
 
 ## 🏆 Challenge Requirements Compliance
 
 ### ✅ Mandatory Requirements
-- [x] **Language & UI**: Swift 5+ with SwiftUI ✨
+- [x] **Language & UI**: Swift 6+ with SwiftUI ✨
 - [x] **Concurrency**: Swift Concurrency (async/await) throughout ✨
 - [x] **Package Management**: Swift Package Manager with Kingfisher ✨
 - [x] **Architecture**: Clean MVVM pattern with proper separation ✨
@@ -263,16 +227,16 @@ The app features a **professional search system** designed for interview demonst
 - [x] **Repository**: Forked public repository ✨
 
 ### ✅ Core Features
-- [x] **Movie List**: Beautiful grid layout with search functionality ✨
+- [x] **Movie List**: Beautiful grid layout with advanced search and filtering ✨
 - [x] **Details Screen**: Rich movie information with recommendations ✨
-- [x] **Navigation**: Smooth transitions between screens ✨
+- [x] **Navigation**: Sheet presentations for movie details ✨
 - [x] **Likes System**: Persistent favorites with visual feedback ✨
 
 ### ✅ Bonus Features (All Implemented!)
-- [x] **Unit Tests**: Comprehensive test suite covering core functionality ✨
+- [x] **Unit Tests**: Comprehensive test suite (19 test files) ✨
 - [x] **Image Caching**: Advanced image loading with Kingfisher ✨
 - [x] **Dark Mode**: Full light/dark mode support ✨
-- [x] **Accessibility**: VoiceOver labels and semantic structure implementation ✨
+- [x] **Pull-to-Refresh**: Manual refresh capability ✨
 - [x] **Performance**: Optimized for smooth scrolling experience ✨
 - [x] **Error Recovery**: User-friendly error handling with retry options ✨
 
@@ -282,8 +246,8 @@ The app features a **professional search system** designed for interview demonst
 
 ### App Performance
 - **Network Efficiency**: Response caching reduces redundant API calls
-- **Smooth Scrolling**: Optimized list performance with lazy loading
-- **Image Loading**: Progressive loading with shimmer placeholders and error handling
+- **Smooth Scrolling**: Optimized list performance with LazyVGrid
+- **Image Loading**: Progressive loading with retry logic and error handling
 
 ### Code Quality
 - **Test Coverage**: Comprehensive unit test suite covering core functionality
@@ -306,41 +270,43 @@ The app features a **professional search system** designed for interview demonst
 #### **2. Local Storage**
 - **Current**: UserDefaults for favorites persistence (simple and effective)
 - **Trade-off**: No cross-device synchronization
-- **Future Enhancement**: CloudKit integration for syncing favorites across devices
+- **Future Enhancement**: Firebase Firestore for syncing favorites across devices
 
 #### **3. Image Caching**
 - **Current**: Kingfisher with default settings
 - **Trade-off**: Basic cache management without custom policies
-- **Future Enhancement**: Custom cache expiration policies and offline image storage
+- **Future Enhancement**: Image pre-loading as user scrolls for better performance
 
 #### **4. Accessibility**
-- **Current**: Basic accessibility labels on key interactive elements
-- **Trade-off**: Limited to essential VoiceOver support
-- **Future Enhancement**: Complete accessibility audit including:
-  - Full VoiceOver navigation support
+- **Current**: Comprehensive VoiceOver support with labels, hints, and traits
+- **Trade-off**: Limited Dynamic Type and high contrast mode support
+- **Future Enhancement**: Enhanced accessibility implementation including:
   - Dynamic Type implementation for all text elements
   - High contrast mode optimization
+  - Reduce Motion support for users with motion sensitivity
   - Voice Control compatibility
   - Switch Control support
+  - Improved screen reader navigation
 
 ### Potential Future Features
 
 #### **Enhanced User Experience**
+- **Haptic Feedback**: Tactile responses for like/unlike actions (currently implemented)
 - **Advanced Animations**: Spring-based transitions and micro-interactions
-- **Haptic Feedback**: Tactile responses for key user actions
-- **Pull-to-Refresh**: Manual refresh capability for movie lists
+- **Enhanced Haptic Feedback**: Expanded tactile responses for more user actions
 - **Infinite Scrolling**: Load more movies as user scrolls
+- **Favorites Screen**: Dedicated screen for managing liked movies
+- **Better Detail Layout**: Improved spacing to reduce scrolling in movie details
 
 #### **Advanced Functionality**
-- **Offline Mode**: Core Data implementation for offline movie browsing
-- **Advanced Search Filters**: Filter by genre, rating range, decade, director
+- **Offline Mode**: SwiftData implementation for offline movie browsing
 - **User Profiles**: Personal movie collections and viewing history
 - **Social Features**: Share favorite movies and reviews with friends
 - **Watch Lists**: Create and manage custom movie collections
 - **Movie Ratings**: Allow users to rate movies they've watched
 
 #### **Platform Expansion**
-- **iPad Support**: Adaptive layouts optimized for larger screens
+- **iPad Support**: Wide movie images optimized for larger screens
 - **Apple Watch**: Quick access to favorites and movie lookup
 - **macOS**: Catalyst app for desktop experience
 - **tvOS**: Apple TV app for big screen browsing
@@ -353,8 +319,8 @@ The app features a **professional search system** designed for interview demonst
 - **Background App Refresh**: Update movie data in background
 
 #### **Analytics & Performance**
-- **User Analytics**: Track usage patterns for better UX decisions
-- **Performance Monitoring**: Real-time performance metrics and crash reporting
+- **Firebase Analytics**: Track usage patterns for better UX decisions
+- **Crashlytics**: Real-time performance metrics and crash reporting
 - **A/B Testing**: Test different UI variations for optimization
 - **Advanced Caching**: Predictive caching based on user behavior
 
@@ -364,7 +330,7 @@ The app features a **professional search system** designed for interview demonst
 - **Coordinator Pattern**: Enhanced navigation management for complex flows
 - **Dependency Container**: More sophisticated dependency injection
 - **Feature Modules**: Modular architecture for better code organization
-- **Core Data**: Replace UserDefaults with robust local database
+- **SwiftData**: Replace UserDefaults with robust local database
 
 #### **Code Quality Enhancements**
 - **SwiftLint Integration**: Automated code style enforcement

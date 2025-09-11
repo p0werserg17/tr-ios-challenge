@@ -74,6 +74,8 @@ struct SearchBarView: View {
                 }
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
+                .accessibilityLabel("Search movies")
+                .accessibilityHint("Type to search for movies by title or year")
 
             // Clear button
             if !text.isEmpty {

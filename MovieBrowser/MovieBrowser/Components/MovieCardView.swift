@@ -41,7 +41,7 @@ struct MovieCardView: View {
         )
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
-        .accessibilityLabel("\(movie.name), \(movie.year)")
+        .accessibilityLabel("Movie: \(movie.name), \(movie.year)")
         .accessibilityHint("Tap to view movie details")
     }
 
