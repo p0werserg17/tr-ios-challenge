@@ -91,7 +91,7 @@ struct FilterStatusView: View {
                                 .buttonStyle(PlainButtonStyle())
                             }
                         }
-                        .padding(.horizontal, 16)
+//                        .padding(.horizontal, 16)
                     }
                 }
             }

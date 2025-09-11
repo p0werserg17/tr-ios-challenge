@@ -113,15 +113,36 @@ enum FilterCategory: String, CaseIterable {
 }
 
 // MARK: - Movie Extensions for Filtering
+/// These extensions provide computed properties to enable filtering functionality
+/// that isn't directly supported by the API data structure.
+///
+/// **Key Design Challenge:**
+/// The provided API has a limitation where the list endpoint only provides basic info
+/// (id, name, thumbnail, year) while detailed info (ratings, descriptions) requires
+/// individual API calls. This creates a performance vs. accuracy tradeoff for filtering.
 extension Movie {
     var decade: String {
         let decade = (year / 10) * 10
         return "\(decade)s"
     }
 
+    /// Estimated genre for filtering purposes
+    ///
+    /// **Design Tradeoff Discussion:**
+    /// Neither the movie list API nor the details API provide genre information.
+    /// This creates a challenge for genre-based filtering functionality.
+    ///
+    /// **Options Considered:**
+    /// 1. **Remove genre filtering** - Simplest but reduces functionality
+    /// 2. **Use external API** - Adds complexity and dependencies (TMDB, OMDB, etc.)
+    /// 3. **Manual genre mapping** - Current approach, works for known movies
+    /// 4. **Machine learning classification** - Overkill for this scope
+    ///
+    /// **Current Choice: Name-based Genre Estimation**
+    /// - Pros: Simple, no external dependencies, works for demo
+    /// - Cons: Limited accuracy, only works for well-known movies
+    /// - Tradeoff: Enables genre filtering demo without API complexity
     var estimatedGenre: String {
-        // Since we don't have genre data, we'll estimate based on movie names
-        // This is a simplified approach for demo purposes
         let name = self.name.lowercased()
 
         if name.contains("avengers") || name.contains("dark knight") || name.contains("matrix") {
@@ -131,19 +152,39 @@ extension Movie {
         } else if name.contains("home alone") {
             return "Comedy"
         } else {
-            return "Drama"
+            return "Drama" // Default fallback
         }
     }
 
-    // Estimated rating based on well-known movies for demo
+    /// Estimated rating for filtering purposes
+    ///
+    /// **Design Tradeoff Discussion:**
+    /// The movie list API (`/list.json`) only provides basic movie info (id, name, thumbnail, year)
+    /// but does NOT include ratings. Ratings are only available in the details API (`/details/{id}.json`).
+    ///
+    /// **Options Considered:**
+    /// 1. **Fetch all details upfront** - Would require N API calls on app launch (expensive, slow)
+    /// 2. **Remove rating-based filtering** - Reduces functionality for users
+    /// 3. **Use estimated ratings** - Current approach, enables filtering without performance cost
+    /// 4. **Hybrid approach** - Fetch ratings on-demand and cache them (complex implementation)
+    ///
+    /// **Current Choice: Estimated Ratings**
+    /// - Pros: Fast filtering, no additional API calls, good UX
+    /// - Cons: Not 100% accurate, requires maintenance for new movies
+    /// - Tradeoff: Prioritizes performance and UX over perfect data accuracy
+    ///
+    /// **Future Improvements:**
+    /// - Consider adding ratings to the list API response
+    /// - Implement progressive enhancement (show estimates, replace with real data when available)
+    /// - Add visual indicator that ratings are estimates vs. actual
     var estimatedRating: Double {
         switch id {
-        case 1: return 8.4 // Avengers: Endgame
+        case 1: return 8.4 // Avengers: Endgame (matches API: 8.4)
         case 2: return 7.7 // Home Alone
         case 3: return 8.8 // Inception
         case 4: return 9.0 // The Dark Knight
         case 5: return 8.7 // The Matrix
-        default: return Double.random(in: 6.0...9.5)
+        default: return Double.random(in: 6.0...9.5) // Fallback for unknown movies
         }
     }
 }

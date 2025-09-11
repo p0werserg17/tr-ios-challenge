@@ -324,6 +324,32 @@ The app features a **professional search system** designed for interview demonst
 - **A/B Testing**: Test different UI variations for optimization
 - **Advanced Caching**: Predictive caching based on user behavior
 
+### API Limitations & Design Tradeoffs
+
+#### **Challenge: Limited API Data Structure**
+The provided API has an inherent limitation that affects filtering functionality:
+
+- **List API** (`/list.json`): Only provides basic info (id, name, thumbnail, year)
+- **Details API** (`/details/{id}.json`): Provides full info including ratings and descriptions
+
+#### **Impact on Filtering Features**
+This creates a performance vs. accuracy tradeoff for features like:
+
+**Rating-Based Filtering:**
+- **Option 1**: Fetch all details upfront → N API calls on launch (slower performance)
+- **Option 2**: Remove rating filters → Simplified but reduced functionality
+- **Option 3 (current choice)**: Use estimated ratings → Fast, functional, reasonable approximation
+
+**Genre-Based Filtering:**
+- **Option 1**: External API integration → More accurate but added complexity/dependencies
+- **Option 2**: Remove genre filters → Simplified but reduced functionality
+- **Option 3 (current choice)**: Name-based estimation → Simple, works well for demo scope
+
+#### **Design Decision Rationale**
+- **Priority**: User experience and performance over perfect data accuracy
+- **Context**: Technical challenge/demo scope vs. production requirements
+- **Future**: These could be enhanced with API improvements or external data sources
+
 ### Architecture Considerations
 
 #### **Scalability Improvements**
