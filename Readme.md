@@ -24,26 +24,7 @@ MovieBrowser is a modern, feature-rich iOS application built with **SwiftUI** th
 ## 🏗️ Architecture & Design
 
 ### MVVM Architecture
-The app follows a clean **Model-View-ViewModel (MVVM)** pattern with proper separation of concerns:
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│     Views       │    │   ViewModels    │    │     Models      │
-│                 │    │                 │    │                 │
-│ • MovieListView │◄──►│ • MovieListVM   │◄──►│ • Movie         │
-│ • MovieDetailV  │    │ • MovieDetailVM │    │ • MovieDetail   │
-│ • Components    │    │ • LoadingState  │    │ • APIResponse   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │    Services     │
-                       │                 │
-                       │ • NetworkService│
-                       │ • LikesService  │
-                       │ • SearchService │
-                       └─────────────────┘
-```
+The app follows a clean **Model-View-ViewModel (MVVM)** pattern with proper separation of concerns, featuring comprehensive views, reusable components, dedicated services, and extensive test coverage.
 
 ### Key Design Principles
 - **Single Responsibility**: Each component has one clear purpose
