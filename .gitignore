@@ -1,4 +1,5 @@
-# macOS
 .DS_Store
+xcuserdata/
 MovieBrowser/.DS_Store
 MovieBrowser/MovieBrowser.xcodeproj/project.xcworkspace/xcuserdata/
+Instructions/.DS_Store
