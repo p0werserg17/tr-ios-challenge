@@ -73,7 +73,7 @@ final class NetworkService: NetworkServiceProtocol, ObservableObject, @unchecked
 
     // MARK: - Properties
     private let session: URLSessionProtocol
-    private let baseURL = "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master"
+    private let baseURL = "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/Instructions"
     private let cache = NSCache<NSString, NSData>()
 
     // MARK: - Initialization
