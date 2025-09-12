@@ -196,14 +196,14 @@ extension View {
             Text("Normal Loading")
                 .font(.headline)
             SimpleAsyncImageView(
-                url: URL(string: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/1.jpg"),
+                url: URL(string: "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/1.jpg"),
                 height: 200
             )
 
             Text("Slow Loading (3s delay)")
                 .font(.headline)
             SimpleAsyncImageView(
-                url: URL(string: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/2.jpg"),
+                url: URL(string: "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/2.jpg"),
                 height: 200,
                 simulateSlowLoading: true
             )
@@ -211,7 +211,7 @@ extension View {
             Text("Error State")
                 .font(.headline)
             SimpleAsyncImageView(
-                url: URL(string: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/3.jpg"),
+                url: URL(string: "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/3.jpg"),
                 height: 200,
                 simulateError: true
             )

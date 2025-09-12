@@ -89,31 +89,31 @@ extension Movie {
         Movie(
             id: 1,
             name: "Avengers: Endgame",
-            thumbnail: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/1.jpg",
+            thumbnail: "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/1.jpg",
             year: 2019
         ),
         Movie(
             id: 2,
             name: "Home Alone",
-            thumbnail: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/2.jpg",
+            thumbnail: "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/2.jpg",
             year: 1990
         ),
         Movie(
             id: 3,
             name: "Inception",
-            thumbnail: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/3.jpg",
+            thumbnail: "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/3.jpg",
             year: 2010
         ),
         Movie(
             id: 4,
             name: "The Dark Knight",
-            thumbnail: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/4.jpg",
+            thumbnail: "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/4.jpg",
             year: 2008
         ),
         Movie(
             id: 5,
             name: "The Matrix",
-            thumbnail: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/5.jpg",
+            thumbnail: "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/5.jpg",
             year: 1999
         )
     ]
@@ -130,7 +130,7 @@ extension MovieDetails {
         description: "After the devastating events of Avengers: Infinity War (2018), the universe is in ruins. With the help of remaining allies, the Avengers assemble once more in order to reverse Thanos' actions and restore balance to the universe.",
         notes: "After the devastating events of Avengers: Infinity War (2018), the universe is in ruins due to the efforts of the Mad Titan, Thanos. With the help of remaining allies, the Avengers must assemble once more in order to undo Thanos's actions and undo the chaos to the universe, no matter what consequences may be in store, and no matter who they face...",
         rating: 8.4,
-        picture: "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/details/1.jpg",
+        picture: "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/details/1.jpg",
         releaseDate: 1556236800
     )
 }
