@@ -1,18 +1,17 @@
 import Foundation
+import SwiftUI
 
 @MainActor
 final class MovieListViewModel: ObservableObject {
     @Published var state: ViewState = .idle
     @Published var movies: [MovieSummary] = []
 
-    // UI state
     @Published var searchText: String = ""
     @Published var sort: SortOption = .titleAZ
     @Published var layout: LayoutMode = .grid
     @Published var showFilters: Bool = false
     @Published var isFetchingRatings: Bool = false
 
-    // Ratings cache for sorting by rating
     private(set) var ratingByID: [MovieID: Double] = [:]
 
     private let service: MovieService
@@ -22,7 +21,7 @@ final class MovieListViewModel: ObservableObject {
         self.service = service
         self.likes = likes
     }
-    
+
     func loadIfNeeded() async {
         guard movies.isEmpty else { return }
         await load()
@@ -34,14 +33,34 @@ final class MovieListViewModel: ObservableObject {
             let list = try await service.fetchList()
             movies = list
             state = list.isEmpty ? .empty : .loaded
-//            print("📦 URLCache: \(diskKB) KB on disk, \(memKB) KB in memory")
         } catch {
-        state = error.isOffline
+            state = error.isOffline
                 ? .error("You're offline. Check your connection.")
-                : .error("Something went wrong. Please try again.")        }
+                : .error("Something went wrong. Please try again.")
+        }
     }
 
-    // Call when user selects rating sort. Fetches ratings once and caches them.
+    func refreshRespectingSort() async {
+        await load()
+        if sort == .ratingHigh { await ensureRatings() }
+    }
+
+    func retryAfterError() async {
+        await refreshRespectingSort()
+    }
+
+    func onFiltersApplied() async {
+        if sort == .ratingHigh { await ensureRatings() }
+    }
+
+    func toggleLayout() {
+        layout = (layout == .grid ? .list : .grid)
+    }
+
+    var layoutIconName: String {
+        layout == .grid ? "list.bullet" : "square.grid.2x2"
+    }
+
     func ensureRatings() async {
         guard ratingByID.isEmpty else { return }
         isFetchingRatings = true
@@ -62,23 +81,21 @@ final class MovieListViewModel: ObservableObject {
                 }
             }
         } catch {
-            print("Ratings prefetch error:", error.localizedDescription)
+            // non-fatal
         }
     }
 
     func isLiked(_ id: MovieID) -> Bool { likes.isLiked(id) }
     func toggleLike(_ id: MovieID) { likes.toggle(id) }
 
-    // MARK: - Derived collection for the view
-
     var visibleMovies: [MovieSummary] {
-        let filtered = filter(movies, by: searchText)
-        return sortMovies(filtered, by: sort)
+        sortMovies(filter(movies, by: searchText), by: sort)
     }
 
     private func filter(_ list: [MovieSummary], by query: String) -> [MovieSummary] {
-        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return list }
-        let q = query.lowercased()
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return list }
+        let q = trimmed.lowercased()
         return list.filter { $0.title.lowercased().contains(q) || $0.year.contains(q) }
     }
 
@@ -89,23 +106,19 @@ final class MovieListViewModel: ObservableObject {
         case .titleZA:
             return list.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending }
         case .yearNewest:
-            return list.sorted { ($0.yearInt) > ($1.yearInt) }
+            return list.sorted { $0.yearInt > $1.yearInt }
         case .yearOldest:
-            return list.sorted { ($0.yearInt) < ($1.yearInt) }
+            return list.sorted { $0.yearInt < $1.yearInt }
         case .ratingHigh:
             return list.sorted {
-                let r0 = ratingByID[$0.id] ?? -Double.greatestFiniteMagnitude
-                let r1 = ratingByID[$1.id] ?? -Double.greatestFiniteMagnitude
-                if r0 == r1 {
-                    return $0.title < $1.title
-                }
-                return r0 > r1
+                let r0 = ratingByID[$0.id] ?? -.greatestFiniteMagnitude
+                let r1 = ratingByID[$1.id] ?? -.greatestFiniteMagnitude
+                return r0 == r1 ? ($0.title < $1.title) : (r0 > r1)
             }
         }
     }
 }
 
-// Small helper to convert "2010" -> 2010 cleanly
 private extension MovieSummary {
     var yearInt: Int { Int(year) ?? 0 }
 }

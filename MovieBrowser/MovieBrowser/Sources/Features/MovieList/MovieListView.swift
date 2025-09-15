@@ -2,7 +2,6 @@ import SwiftUI
 
 struct MovieListView: View {
     private let locator: ServiceLocator
-    @EnvironmentObject private var likes: LikeStore
     @StateObject private var vm: MovieListViewModel
 
     private let columns: [GridItem] = [
@@ -20,86 +19,71 @@ struct MovieListView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                switch vm.state {
-                case .idle, .loading:
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                case .error(let message):
-                    ErrorView(message: message) {
-                        await vm.load()
-                        if vm.sort == .ratingHigh { await vm.ensureRatings() }
+            content
+                .navigationTitle("Movies")
+                .task { await vm.loadIfNeeded() }
+                .searchable(
+                    text: $vm.searchText,
+                    placement: .navigationBarDrawer(displayMode: .always),
+                    prompt: "Search"
+                )
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: { vm.toggleLayout() }) {
+                            Image(systemName: vm.layoutIconName)
+                        }
                     }
-
-                case .empty:
-                    EmptyStateView(text: "No movies found")
-
-                case .loaded:
-                    content
-                }
-            }
-            .navigationTitle("Movies")
-            .task { await vm.loadIfNeeded() }
-            .searchable(
-                text: $vm.searchText,
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Search"
-            )
-            .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button {
-                        vm.layout = (vm.layout == .grid ? .list : .grid)
-                    } label: {
-                        Image(systemName: vm.layout == .grid ? "list.bullet" : "square.grid.2x2")
-                    }
-
-                    Button("Filters") {
-                        vm.showFilters = true
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Filters") { vm.showFilters = true }
                     }
                 }
-            }
-            .sheet(isPresented: $vm.showFilters) {
-                FiltersSheet(sort: $vm.sort, layout: $vm.layout) {
-                    Task { if vm.sort == .ratingHigh { await vm.ensureRatings() } }
-                    vm.showFilters = false
+                .sheet(isPresented: $vm.showFilters) {
+                    FiltersSheet(sort: $vm.sort, layout: $vm.layout) {
+                        Task { await vm.onFiltersApplied() }
+                        vm.showFilters = false
+                    }
+                    .presentationDetents([.medium, .large])
                 }
-                .presentationDetents([.medium, .large])
-            }
-            .overlay(alignment: .top) {
-                if vm.isFetchingRatings {
-                    ProgressView("Loading ratings…")
-                        .padding(8)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .padding(.top, 8)
+                .overlay(alignment: .top) {
+                    if vm.isFetchingRatings {
+                        ProgressView("Loading ratings…")
+                            .padding(8)
+                            .background(.ultraThinMaterial, in: Capsule())
+                            .padding(.top, 8)
+                    }
                 }
-            }
-            .navigationDestination(for: MovieID.self) { id in
-                MovieDetailView(id: id, locator: locator)
-            }
+                .navigationDestination(for: MovieID.self) { id in
+                    MovieDetailView(id: id, locator: locator)
+                }
         }
     }
 
     @ViewBuilder
     private var content: some View {
-        if vm.layout == .grid {
-            gridContent
-        } else {
-            listContent
+        switch vm.state {
+        case .idle, .loading:
+            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+
+        case .error(let message):
+            ErrorView(message: message) {
+                await vm.retryAfterError()
+            }
+
+        case .empty:
+            EmptyStateView(text: "No movies found")
+
+        case .loaded:
+            if vm.layout == .grid { gridContent } else { listContent }
         }
     }
 
-    // Grid
     private var gridContent: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(vm.visibleMovies) { m in
                     NavigationLink(value: m.id) {
                         VStack(alignment: .leading, spacing: 8) {
-                            // Poster
                             Poster(url: m.poster, size: 180)
-
-                            // Title + Year
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(m.title)
                                     .font(.headline)
@@ -107,15 +91,12 @@ struct MovieListView: View {
                                     .truncationMode(.tail)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .frame(height: 44)
-
                                 HStack {
                                     Text(m.year)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
-
                                     Spacer()
-
-                                    LikeButton(isOn: likes.isLiked(m.id)) { likes.toggle(m.id) }
+                                    LikeButton(isOn: vm.isLiked(m.id)) { vm.toggleLike(m.id) }
                                         .padding(6)
                                         .shadow(radius: 1, x: 0, y: 1)
                                 }
@@ -126,33 +107,26 @@ struct MovieListView: View {
                         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
                     .contextMenu {
-                        Button(likes.isLiked(m.id) ? "Unlike" : "Like") { likes.toggle(m.id) }
+                        Button(vm.isLiked(m.id) ? "Unlike" : "Like") { vm.toggleLike(m.id) }
                     }
                 }
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 12)
         }
-        .refreshable {
-            await vm.load()
-            if vm.sort == .ratingHigh { await vm.ensureRatings() }
-        }
+        .refreshable { await vm.refreshRespectingSort() }
     }
 
-    // List
     private var listContent: some View {
         List(vm.visibleMovies) { m in
             NavigationLink(value: m.id) {
-                MovieRow(movie: m, liked: likes.isLiked(m.id))
+                MovieRow(movie: m, liked: vm.isLiked(m.id))
             }
             .contextMenu {
-                Button(likes.isLiked(m.id) ? "Unlike" : "Like") { likes.toggle(m.id) }
+                Button(vm.isLiked(m.id) ? "Unlike" : "Like") { vm.toggleLike(m.id) }
             }
         }
         .listStyle(.plain)
-        .refreshable {
-            await vm.load()
-            if vm.sort == .ratingHigh { await vm.ensureRatings() }
-        }
+        .refreshable { await vm.refreshRespectingSort() }
     }
 }
