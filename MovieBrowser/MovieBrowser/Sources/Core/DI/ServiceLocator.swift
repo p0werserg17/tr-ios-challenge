@@ -6,7 +6,11 @@ final class ServiceLocator {
     let likeStore: LikeStore
     let imageLoader: ImageLoader
 
-    init(movieService: MovieService, likeStore: LikeStore, imageLoader: ImageLoader) {
+    init(
+        movieService: MovieService,
+        likeStore: LikeStore,
+        imageLoader: ImageLoader
+    ) {
         self.movieService = movieService
         self.likeStore = likeStore
         self.imageLoader = imageLoader
