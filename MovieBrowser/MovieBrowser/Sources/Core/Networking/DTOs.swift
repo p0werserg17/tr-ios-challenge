@@ -1,7 +1,7 @@
 import Foundation
 
 struct RawMovieListEnvelope: Codable {
-    let movies: [RawMovieSummary]
+    let movies: [RawMovieSummary]?
 }
 
 // Elements inside the list/recommended envelopes
