@@ -123,6 +123,13 @@ For a challenge-sized app, `URLCache` (disk/network bytes) + `NSCache` (decoded 
 Ratings only live in **details**, so rating sort performs a one-time details prefetch in the List VM. This keeps launch fast while enabling rating-based sorting when requested.  
 
 ---
+## 📂 Project Structure
+
+- The **MovieBrowser** app is contained inside the [`MovieBrowser/`](./MovieBrowser) folder.  
+- Core source code lives in [`MovieBrowser/MovieBrowser/Sources/`](./MovieBrowser/MovieBrowser/Sources/).  
+- Tests are located in [`MovieBrowser/MovieBrowserTests/`](./MovieBrowser/MovieBrowserTests).
+
+---
 
 
 ## 🙏 Credits
