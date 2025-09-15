@@ -3,6 +3,8 @@ import XCTest
 
 final class MovieServiceTests: XCTestCase {
 
+    // MARK: - Sample JSON
+
     private let listJSON = """
     {
       "movies": [
@@ -32,6 +34,8 @@ final class MovieServiceTests: XCTestCase {
     }
     """.data(using: .utf8)!
 
+    // MARK: - Test doubles
+
     private final class MockClient: APIClient {
         let map: [String: (Data, Int)]
         init(map: [String: (Data, Int)]) { self.map = map }
@@ -52,10 +56,24 @@ final class MovieServiceTests: XCTestCase {
         func set(_ data: Data, for key: String) { storage[key] = data; setKeys.append(key) }
     }
 
+    // MARK: - URL helpers (avoid scattering try everywhere)
+
+    private func listURLString() throws -> String {
+        try Endpoints.list().absoluteString
+    }
+    private func detailsURLString(id: MovieID) throws -> String {
+        try Endpoints.details(id: id).absoluteString
+    }
+    private func recommendedURLString(id: MovieID) throws -> String {
+        try Endpoints.recommended(id: id).absoluteString
+    }
+
+    // MARK: - Tests
 
     func test_fetchList_decodes_and_caches() async throws {
         let cache = SpyCache()
-        let client = MockClient(map: [Endpoints.list.absoluteString: (listJSON, 200)])
+        let listURL = try listURLString()
+        let client = MockClient(map: [listURL: (listJSON, 200)])
         let svc = MovieServiceImpl(client: client, cache: cache)
 
         let list = try await svc.fetchList()
@@ -69,10 +87,10 @@ final class MovieServiceTests: XCTestCase {
     func test_fetchDetails_uses_cache_when_offline() async throws {
         let cache = SpyCache()
         let id = MovieID(raw: "1")
-        let url = Endpoints.details(id: id).absoluteString
+        let detailsURL = try detailsURLString(id: id)
 
         // 1) Online first to populate cache
-        let onlineClient = MockClient(map: [url: (detailsJSON, 200)])
+        let onlineClient = MockClient(map: [detailsURL: (detailsJSON, 200)])
         let onlineSvc = MovieServiceImpl(client: onlineClient, cache: cache)
         _ = try await onlineSvc.fetchDetails(id: id)
 
@@ -85,9 +103,10 @@ final class MovieServiceTests: XCTestCase {
         XCTAssertEqual(d.rating, "8.7")
     }
 
-    func test_http_error_maps_to_service_error_http() async {
+    func test_http_error_maps_to_service_error_http() async throws {
         let cache = SpyCache()
-        let client = MockClient(map: [Endpoints.list.absoluteString: (Data(), 500)])
+        let listURL = try listURLString()
+        let client = MockClient(map: [listURL: (Data(), 500)])
         let svc = MovieServiceImpl(client: client, cache: cache)
 
         do {
@@ -107,7 +126,7 @@ final class MovieServiceTests: XCTestCase {
     func test_fetchRecommended_decodes_envelope() async throws {
         let cache = SpyCache()
         let id = MovieID(raw: "1")
-        let recURL = Endpoints.recommended(id: id).absoluteString
+        let recURL = try recommendedURLString(id: id)
 
         let client = MockClient(map: [recURL: (recommendedJSON, 200)])
         let svc = MovieServiceImpl(client: client, cache: cache)

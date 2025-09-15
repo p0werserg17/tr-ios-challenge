@@ -10,18 +10,21 @@ final class MovieServiceImpl: MovieService {
     }
 
     func fetchList() async throws -> [MovieSummary] {
-        let envelope = try await loadJSON(RawMovieListEnvelope.self, for: Endpoints.list)
-        return envelope.movies.map(Mapper.summary)
+        let url = try Endpoints.list()
+        let envelope = try await loadJSON(RawMovieListEnvelope.self, for: url)
+        return (envelope.movies ?? []).map(Mapper.summary)
     }
 
     func fetchDetails(id: MovieID) async throws -> MovieDetails {
-        let raw = try await loadJSON(RawMovieDetails.self, for: Endpoints.details(id: id))
+        let url = try Endpoints.details(id: id)
+        let raw = try await loadJSON(RawMovieDetails.self, for: url)
         return Mapper.details(raw)
     }
 
     func fetchRecommended(id: MovieID) async throws -> [MovieSummary] {
-        let envelope = try await loadJSON(RawMovieListEnvelope.self, for: Endpoints.recommended(id: id))
-        return envelope.movies.map(Mapper.summary)
+        let url = try Endpoints.recommended(id: id)
+        let envelope = try await loadJSON(RawMovieListEnvelope.self, for: url)
+        return (envelope.movies ?? []).map(Mapper.summary)
     }
 
     // MARK: - Shared decode with simple in-memory cache

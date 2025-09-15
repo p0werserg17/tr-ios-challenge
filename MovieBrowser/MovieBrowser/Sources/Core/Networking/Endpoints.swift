@@ -1,8 +1,29 @@
 import Foundation
 
 enum Endpoints {
-    static let base = "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master"
-    static var list: URL { URL(string: base + "/list.json")! }
-    static func details(id: MovieID) -> URL { URL(string: base + "/details/\(id.raw).json")! }
-    static func recommended(id: MovieID) -> URL { URL(string: base + "/details/recommended/\(id.raw).json")! }
+
+    private static let baseString = "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master"
+
+    static func list() throws -> URL {
+        try build(path: "/list.json")
+    }
+
+    static func details(id: MovieID) throws -> URL {
+        try build(path: "/details/\(id.raw).json")
+    }
+
+    static func recommended(id: MovieID) throws -> URL {
+        try build(path: "/details/recommended/\(id.raw).json")
+    }
+
+    private static func build(path: String) throws -> URL {
+        guard var comps = URLComponents(string: baseString) else {
+            throw ServiceError.badURL
+        }
+        comps.path = (comps.path as NSString).appending(path)
+        guard let url = comps.url else {
+            throw ServiceError.badURL
+        }
+        return url
+    }
 }
