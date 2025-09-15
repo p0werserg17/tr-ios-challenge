@@ -21,12 +21,7 @@ struct FavoritesView: View {
                 } else if filtered.isEmpty {
                     EmptyStateView(text: "No favorites yet")
                 } else {
-                    List(filtered) { m in
-                        NavigationLink(value: m.id) {
-                            MovieRow(movie: m, liked: true)
-                        }
-                    }
-                    .listStyle(.plain)
+                    favoriteList
                 }
             }
             .navigationTitle("Favorites")
@@ -40,6 +35,15 @@ struct FavoritesView: View {
     private var filtered: [MovieSummary] {
         list.filter { likes.isLiked($0.id) }
             .sorted { $0.title < $1.title }
+    }
+    
+    private var favoriteList: some View {
+        List(filtered) { m in
+            NavigationLink(value: m.id) {
+                MovieRow(movie: m, liked: true)
+            }
+        }
+        .listStyle(.plain)
     }
 
     private func load() async {
