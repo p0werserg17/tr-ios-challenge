@@ -1,34 +1,47 @@
 {
   "movies": [
     {
-      "id": 1,
+      "id": "1",
       "name": "Avengers: Endgame",
-      "thumbnail": "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/1.jpg",
+      "type": "movie",
+      "thumbnail": "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/1.jpg",
       "year": 2019
     },
     {
-      "id": 2,
+      "id": "2",
       "name": "Home Alone",
-      "thumbnail": "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/2.jpg",
+      "type": "movie",
+      "thumbnail": "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/2.jpg",
       "year": 1990
     },
     {
-      "id": 3,
+      "id": "3",
       "name": "Inception",
-      "thumbnail": "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/3.jpg",
+      "type": "movie",
+      "thumbnail": "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/3.jpg",
       "year": 2010
     },
     {
-      "id": 4,
+      "id": "4",
       "name": "Toy Story",
-      "thumbnail": "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/4.jpg",
+      "type": "movie",
+      "thumbnail": "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/4.jpg",
       "year": 1995
     },
     {
-      "id": 5,
+      "id": "5",
       "name": "The Dark Knight",
-      "thumbnail": "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master/5.jpg",
+      "type": "movie",
+      "thumbnail": "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/5.jpg",
       "year": 2008
+    },
+    {
+      "id": "6",
+      "type": "series",
+      "name": "Breaking Bad",
+      "thumbnail": "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master/6.jpeg",
+      "yearStart": 2008,
+      "yearEnd": 2013
     }
   ]
 }

@@ -2,7 +2,7 @@ import Foundation
 
 enum Endpoints {
 
-    private static let baseString = "https://raw.githubusercontent.com/TradeRev/tr-ios-challenge/master"
+    private static let baseString = "https://raw.githubusercontent.com/p0werserg17/tr-ios-challenge/master"
 
     static func list() throws -> URL {
         try build(path: "/list.json")
